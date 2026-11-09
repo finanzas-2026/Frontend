@@ -54,6 +54,7 @@ module.exports = {
       severity: 'error',
       from: {
         path: '^src/app/(shared|financing|sales|settlements|analytics)/application/',
+        pathNot: '\\.spec\\.ts$',
       },
       to: {
         path: '^src/app/(shared|financing|sales|settlements|analytics)/(infrastructure|presentation)/',
@@ -66,6 +67,7 @@ module.exports = {
       severity: 'error',
       from: {
         path: '^src/app/(shared|financing|sales|settlements|analytics)/presentation/',
+        pathNot: '\\.spec\\.ts$',
       },
       to: {
         path: '^src/app/(shared|financing|sales|settlements|analytics)/infrastructure/',

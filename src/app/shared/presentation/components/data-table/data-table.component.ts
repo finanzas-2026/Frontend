@@ -112,7 +112,7 @@ export interface DataTableColumn<T> {
         padding: 0.75rem 1rem;
         border-top: 1px solid #e2e8f0;
         font-size: 0.875rem;
-        color: #64748b;
+        color: #475569;
       }
       .pagination-controls {
         display: flex;

@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw';
+import { financingHandlers } from './handlers/financing.handler';
 
 export const handlers = [
   http.get('*/api/v1/health', () => {
@@ -8,4 +9,5 @@ export const handlers = [
       timestamp: new Date().toISOString(),
     });
   }),
+  ...financingHandlers,
 ];

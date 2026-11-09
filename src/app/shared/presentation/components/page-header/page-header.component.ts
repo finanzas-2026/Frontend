@@ -34,7 +34,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       }
       .page-subtitle {
         font-size: 0.875rem;
-        color: #718096;
+        color: #475569;
         margin: 0.25rem 0 0;
       }
       .header-actions {

@@ -46,7 +46,7 @@ import { MatIconModule } from '@angular/material/icon';
       }
       .empty-message {
         font-size: 0.875rem;
-        color: #64748b;
+        color: #475569;
         max-width: 400px;
         margin: 0 0 1rem;
       }

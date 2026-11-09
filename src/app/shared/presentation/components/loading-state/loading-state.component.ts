@@ -23,7 +23,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       }
       .loading-message {
         font-size: 0.875rem;
-        color: #64748b;
+        color: #475569;
         margin: 0;
       }
     `,

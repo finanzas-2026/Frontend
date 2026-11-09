@@ -4,10 +4,10 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'analytics/dashboard',
+    redirectTo: 'financing/simulator',
   },
   {
-    path: 'analytics',
-    children: [],
+    path: 'financing',
+    loadChildren: () => import('./financing/presentation/financing.routes').then((m) => m.financingRoutes),
   },
 ];
