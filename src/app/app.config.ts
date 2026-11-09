@@ -8,6 +8,7 @@ import { errorInterceptor } from './shared/infrastructure/http/error.interceptor
 import { provideFinancing } from './financing/infrastructure/financing.providers';
 import { provideSales } from './sales/infrastructure/sales.providers';
 import { provideSettlements } from './settlements/infrastructure/settlements.providers';
+import { provideAnalytics } from './analytics/infrastructure/analytics.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,5 +19,6 @@ export const appConfig: ApplicationConfig = {
     provideFinancing(),
     provideSales(),
     provideSettlements(),
+    provideAnalytics(),
   ],
 };

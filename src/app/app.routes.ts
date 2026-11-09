@@ -18,4 +18,8 @@ export const routes: Routes = [
     path: 'settlements',
     loadChildren: () => import('./settlements/presentation/settlements.routes').then((m) => m.SETTLEMENTS_ROUTES),
   },
+  {
+    path: 'analytics',
+    loadChildren: () => import('./analytics/presentation/analytics.routes').then((m) => m.ANALYTICS_ROUTES),
+  },
 ];

@@ -1,0 +1,88 @@
+<app-page-header
+  title="Panel de Control Gerencial MIS"
+  subtitle="Métricas financieras, flujo comparativo de 12 meses y auditoría de cartera comercial"
+/>
+
+@if (store.isLoading()) {
+  <app-loading-state message="Cargando métricas ejecutivas e indicadores financieros..." />
+} @else {
+  <div class="dashboard-layout">
+    <!-- 4 Executive KPI Cards -->
+    @if (store.kpis(); as kpis) {
+      <div class="kpi-cards-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Ingresos Totales (Ventas)</span>
+            <span class="kpi-icon" aria-hidden="true">📈</span>
+          </div>
+          <div class="kpi-main-val">{{ kpis.totalRevenue.toFormatted() }}</div>
+          <div class="kpi-subtext">Ventas acumuladas del período</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Cartera Vencida en Mora</span>
+            <span class="kpi-icon" aria-hidden="true">⚠️</span>
+          </div>
+          <div class="kpi-main-val text-danger">{{ kpis.overduePortfolio.toFormatted() }}</div>
+          <div class="kpi-subtext">Sujeto a penalidad Art. 1250 C.C.</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Cuentas Corrientes Activas</span>
+            <span class="kpi-icon" aria-hidden="true">👥</span>
+          </div>
+          <div class="kpi-main-val">{{ kpis.activeAccounts }} clientes</div>
+          <div class="kpi-subtext">Líneas de crédito operativas</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Tasa de Morosidad</span>
+            <span class="kpi-icon" aria-hidden="true">📉</span>
+          </div>
+          <div class="kpi-main-val text-danger">{{ kpis.defaultRate.toPercentString() }}</div>
+          <div class="kpi-subtext">Sobre saldo total financiado</div>
+        </div>
+      </div>
+    }
+
+    <!-- 12-Month Flow Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">Flujo Comparativo de 12 Meses: Ventas vs. Recaudación Efectiva</h3>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="color-box color-sales"></span>
+            <span>Ventas Facturadas</span>
+          </div>
+          <div class="legend-item">
+            <span class="color-box color-collected"></span>
+            <span>Cobranza Recaudada</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-container" role="img" aria-label="Gráfico de barras comparativo de 12 meses">
+        @for (flow of store.monthlyFlows(); track flow.month) {
+          <div class="bar-group">
+            <div class="bars-wrapper">
+              <div
+                class="bar bar-sales"
+                [style.height.%]="getBarHeight(flow.salesAmount.toNumber())"
+                [attr.title]="flow.month + ' - Ventas: ' + flow.salesAmount.toFormatted()"
+              ></div>
+              <div
+                class="bar bar-collected"
+                [style.height.%]="getBarHeight(flow.collectedAmount.toNumber())"
+                [attr.title]="flow.month + ' - Cobranza: ' + flow.collectedAmount.toFormatted()"
+              ></div>
+            </div>
+            <span class="month-label">{{ flow.month }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
