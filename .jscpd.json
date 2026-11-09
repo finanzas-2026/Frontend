@@ -1,0 +1,6 @@
+{
+  "threshold": 3,
+  "reporters": ["console"],
+  "ignore": ["**/node_modules/**", "**/dist/**", "**/public/**", "**/*.spec.ts"],
+  "format": ["typescript", "markup", "scss"]
+}

@@ -6,33 +6,65 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "serve:ssr:frontend": "node dist/frontend/server/server.mjs"
+    "test": "ng test --no-watch",
+    "test:cov": "ng test --no-watch --coverage",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "depcruise": "depcruise src --config .dependency-cruiser.cjs",
+    "jscpd": "jscpd src",
+    "e2e": "playwright test",
+    "gate": "npm run lint && npm run typecheck && npm run depcruise && npm run jscpd && npm run test:cov && npm run build"
   },
   "private": true,
   "packageManager": "npm@12.2.2",
   "dependencies": {
+    "@angular/cdk": "22.2.6",
     "@angular/common": "^22.2.0",
     "@angular/compiler": "^22.2.0",
     "@angular/core": "^22.2.0",
     "@angular/forms": "^22.2.0",
+    "@angular/material": "22.2.6",
     "@angular/platform-browser": "^22.2.0",
     "@angular/platform-server": "^22.2.0",
     "@angular/router": "^22.2.0",
     "@angular/ssr": "^22.2.6",
+    "chart.js": "4.6.1",
+    "date-fns": "4.4.0",
+    "decimal.js": "10.6.0",
     "express": "^5.1.0",
+    "jwt-decode": "4.0.0",
+    "ng2-charts": "11.0.0",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@angular/build": "^22.2.6",
     "@angular/cli": "^22.2.6",
     "@angular/compiler-cli": "^22.2.0",
+    "@axe-core/playwright": "4.14.0",
+    "@faker-js/faker": "10.6.0",
+    "@playwright/test": "1.65.0",
+    "@testing-library/angular": "19.6.0",
+    "@testing-library/user-event": "14.6.8",
     "@types/express": "^5.0.1",
     "@types/node": "^22.12.0",
+    "@vitest/coverage-v8": "5.1.0",
+    "angular-eslint": "22.6.0",
+    "dependency-cruiser": "18.7.2",
+    "eslint": "10.14.0",
+    "fast-check": "4.10.2",
+    "jscpd": "5.4.3",
     "jsdom": "^30.0.0",
+    "msw": "3.0.4",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
+    "typescript-eslint": "8.72.1",
     "vitest": "^5.0.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

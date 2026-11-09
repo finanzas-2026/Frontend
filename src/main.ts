@@ -1,5 +1,20 @@
-import { platformBrowser } from '@angular/platform-browser';
-import { AppModule } from './app/app-module';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+import { environment } from './environments/environment';
 
-platformBrowser().bootstrapModule(AppModule)
-  .catch(err => console.error(err));
+async function prepareApp(): Promise<void> {
+  if (environment.useFakeApi) {
+    const { worker } = await import('./mocks/browser');
+    await worker.start({
+      onUnhandledFrame: 'bypass',
+      serviceWorker: {
+        url: '/mockServiceWorker.js',
+      },
+    });
+  }
+}
+
+prepareApp()
+  .then(() => bootstrapApplication(AppComponent, appConfig))
+  .catch((err: unknown) => console.error(err));
