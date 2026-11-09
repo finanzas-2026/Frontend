@@ -1,0 +1,194 @@
+<app-page-header
+  title="Ventanilla de Cobranza y Liquidación Legal"
+  subtitle="Cálculo exacto de mora, aplicación legal del Art. 1257 C.C. y emisión de comprobantes"
+/>
+
+@if (store.isLoading()) {
+  <app-loading-state message="Cargando liquidaciones y cotizaciones..." />
+} @else {
+  <div class="desk-layout">
+    <!-- Left Column: Settlements List -->
+    <aside class="sidebar-list" aria-label="Liquidaciones pendientes">
+      <h3 class="list-title">Liquidaciones Activas</h3>
+      @for (item of store.settlements(); track item.id) {
+        <div
+          class="settlement-card-item"
+          [class.active-item]="store.selectedSettlement()?.id === item.id"
+          (click)="store.selectSettlement(item.id)"
+          (keydown.enter)="store.selectSettlement(item.id)"
+          tabindex="0"
+          role="button"
+          [attr.aria-label]="'Liquidación ' + item.code + ' de ' + item.customerName"
+        >
+          <div class="card-top">
+            <span class="settlement-code">{{ item.code }}</span>
+            <span
+              class="badge-status"
+              [class.badge-overdue]="item.status === 'OVERDUE'"
+              [class.badge-pending]="item.status === 'PENDING'"
+              [class.badge-paid]="item.status === 'PAID'"
+            >
+              {{ item.status }}
+            </span>
+          </div>
+          <div class="cust-name">{{ item.customerName }}</div>
+          <div class="settlement-amount">{{ item.totalDue.toFormatted() }}</div>
+        </div>
+      }
+    </aside>
+
+    <!-- Right Column: Payoff Quote & Payment Form -->
+    <main class="quote-details-panel">
+      @if (store.payoffQuote(); as quote) {
+        <!-- Financial KPIs of the Settlement -->
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <span class="kpi-label">Capital Vencido (P)</span>
+            <span class="kpi-value">{{ quote.overduePrincipal.toFormatted() }}</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Interés Compensatorio (I)</span>
+            <span class="kpi-value">{{ quote.compensatoryInterest.toFormatted() }}</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Mora (Art. 1242/1250)</span>
+            <span class="kpi-value text-danger">{{ quote.moratoriumInterest.toFormatted() }}</span>
+          </div>
+          <div class="kpi-box kpi-highlight">
+            <span class="kpi-label">Total a Liquidar</span>
+            <span class="kpi-value">{{ quote.totalPayoffAmount.toFormatted() }}</span>
+          </div>
+        </div>
+
+        <!-- Imputation Breakdown under Art. 1257 C.C. -->
+        @if (store.imputationPreview(); as imp) {
+          <div class="imputation-card">
+            <h4 class="imputation-title">Prelación Legal de Cobro (Art. 1257 Código Civil)</h4>
+            <p class="imputation-desc">
+              Imputación imperativa del pago: 1° Gastos/Mora $\rightarrow$ 2° Compensatorio $\rightarrow$ 3° Capital.
+            </p>
+            <div class="imputation-steps">
+              <div class="imputation-step-box">
+                <span class="step-order">1° Imputación</span>
+                <div class="step-label">Interés Moratorio:</div>
+                <div class="step-val">{{ imp.appliedToMoratorium.toFormatted() }}</div>
+              </div>
+              <div class="imputation-step-box">
+                <span class="step-order">2° Imputación</span>
+                <div class="step-label">Interés Compensatorio:</div>
+                <div class="step-val">{{ imp.appliedToCompensatory.toFormatted() }}</div>
+              </div>
+              <div class="imputation-step-box">
+                <span class="step-order">3° Imputación</span>
+                <div class="step-label">Capital Insoluto:</div>
+                <div class="step-val">{{ imp.appliedToPrincipal.toFormatted() }}</div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Payment Input Form -->
+        <div class="payment-form-card">
+          <h4 class="form-title">Registrar Cobranza en Mostrador</h4>
+          <div class="payment-fields-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Importe a Cobrar (PEN)</mat-label>
+              <input
+                matInput
+                type="text"
+                [value]="store.amountToPay()"
+                (input)="onAmountInput($event)"
+                aria-label="Importe de cobranza"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Medio de Pago</mat-label>
+              <mat-select
+                [value]="store.paymentMethod()"
+                (selectionChange)="store.setPaymentMethod($event.value)"
+                aria-label="Seleccionar medio de pago"
+              >
+                <mat-option value="EFECTIVO">Efectivo</mat-option>
+                <mat-option value="TRANSFERENCIA">Transferencia Bancaria</mat-option>
+                <mat-option value="YAPE">Yape / Plin</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>N° Referencia / Operación</mat-label>
+              <input
+                matInput
+                type="text"
+                [(ngModel)]="referenceInput"
+                placeholder="Ej. OP-984124"
+                aria-label="Número de operación"
+              />
+            </mat-form-field>
+          </div>
+
+          @if (store.isPartialPaymentRejected()) {
+            <div class="alert-error" role="alert">
+              ⛔ <strong>Pago Parcial Rechazado:</strong> La política de comercio de proximidad exige la cancelación total del saldo exigible ({{ quote.totalPayoffAmount.toFormatted() }}).
+            </div>
+          }
+
+          <div class="action-row">
+            <button
+              mat-flat-button
+              color="primary"
+              class="btn-pay"
+              [disabled]="!store.canProcessPayment()"
+              (click)="onPay()"
+            >
+              {{ store.isSubmitting() ? 'Procesando Pago...' : 'Cobrar y Emitir Comprobante' }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <app-empty-state
+          title="Ninguna liquidación seleccionada"
+          message="Seleccione una liquidación del panel lateral para calcular la cotización de cobro."
+        />
+      }
+    </main>
+  </div>
+
+  <!-- Receipt Modal -->
+  @if (store.lastReceipt(); as receipt) {
+    <div
+      class="receipt-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="receipt-title"
+      tabindex="-1"
+    >
+      <div class="receipt-modal-content">
+        <div class="receipt-header">
+          <h2 id="receipt-title">COMPROBANTE DE COBRANZA</h2>
+          <small>N° {{ receipt.receiptNumber }}</small>
+        </div>
+        <div class="receipt-details">
+          <div><strong>Código de Operación:</strong> {{ receipt.code }}</div>
+          <div><strong>Fecha / Hora:</strong> {{ receipt.paymentDate | date: 'dd/MM/yyyy HH:mm' }}</div>
+          <div><strong>Medio de Pago:</strong> {{ receipt.paymentMethod }}</div>
+          @if (receipt.referenceNumber) {
+            <div><strong>N° Referencia:</strong> {{ receipt.referenceNumber }}</div>
+          }
+          <div class="receipt-total-line">
+            <span>Importe Cancelado:</span>
+            <span>{{ receipt.amount.toFormatted() }}</span>
+          </div>
+        </div>
+        <div class="receipt-actions">
+          <button mat-stroked-button type="button" (click)="onPrint()">
+            🖨️ Imprimir Recibo
+          </button>
+          <button mat-flat-button color="primary" type="button" (click)="store.lastReceipt.set(null)">
+            Aceptar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}

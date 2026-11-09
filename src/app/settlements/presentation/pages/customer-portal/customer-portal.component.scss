@@ -1,0 +1,33 @@
+.portal-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.client-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+.client-kpi-card {
+  padding: 1.25rem;
+}
+.kpi-title {
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.kpi-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+.text-warning {
+  color: #b45309;
+}
+.text-success {
+  color: #15803d;
+}
+.statement-card {
+  margin-top: 0.5rem;
+}

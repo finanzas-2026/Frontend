@@ -1,0 +1,35 @@
+<app-page-header
+  title="Portal de Cuentas Corrientes del Cliente"
+  subtitle="Consulta de estado de cuenta mensual, línea de crédito y amortizaciones"
+/>
+
+<div class="portal-layout">
+  <div class="client-kpis">
+    <mat-card class="client-kpi-card">
+      <div class="kpi-title">Línea de Crédito Otorgada</div>
+      <div class="kpi-amount">S/ 2,500.00</div>
+    </mat-card>
+    <mat-card class="client-kpi-card">
+      <div class="kpi-title">Deuda Exigible al Cierre</div>
+      <div class="kpi-amount text-warning">S/ 828.69</div>
+    </mat-card>
+    <mat-card class="client-kpi-card">
+      <div class="kpi-title">Crédito Disponible Actual</div>
+      <div class="kpi-amount text-success">S/ 1,700.00</div>
+    </mat-card>
+  </div>
+
+  <mat-card class="statement-card">
+    <mat-card-header>
+      <mat-card-title>Detalle de Liquidaciones Mensuales</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-data-table
+        [items]="tableItems()"
+        [columns]="columns"
+        emptyTitle="Sin movimientos"
+        emptyMessage="No se registran liquidaciones pendientes para su cuenta."
+      />
+    </mat-card-content>
+  </mat-card>
+</div>

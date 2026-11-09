@@ -1,0 +1,39 @@
+<app-page-header
+  title="Cierres Mensuales y Liquidaciones"
+  subtitle="Auditoría de estados de cuenta por fecha de corte y control de cartera vencida"
+/>
+
+<div class="toolbar-actions">
+  <button
+    mat-stroked-button
+    type="button"
+    (click)="store.advanceDays(5)"
+    [disabled]="store.isLoading()"
+  >
+    ⏩ Adelantar +5 Días
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="onRunCutoff()"
+    [disabled]="store.isLoading()"
+  >
+    ⚙️ Simular Corte Mensual
+  </button>
+</div>
+
+@if (store.isLoading()) {
+  <app-loading-state message="Cargando liquidaciones mensuales..." />
+} @else {
+  <mat-card class="settlements-table-card">
+    <mat-card-content>
+      <app-data-table
+        [items]="tableItems()"
+        [columns]="columns"
+        emptyTitle="No hay liquidaciones"
+        emptyMessage="No se registran cierres mensuales en la base de datos."
+      />
+    </mat-card-content>
+  </mat-card>
+}

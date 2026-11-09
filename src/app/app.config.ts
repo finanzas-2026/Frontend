@@ -7,6 +7,7 @@ import { authInterceptor } from './shared/infrastructure/http/auth.interceptor';
 import { errorInterceptor } from './shared/infrastructure/http/error.interceptor';
 import { provideFinancing } from './financing/infrastructure/financing.providers';
 import { provideSales } from './sales/infrastructure/sales.providers';
+import { provideSettlements } from './settlements/infrastructure/settlements.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,5 +17,6 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideFinancing(),
     provideSales(),
+    provideSettlements(),
   ],
 };
