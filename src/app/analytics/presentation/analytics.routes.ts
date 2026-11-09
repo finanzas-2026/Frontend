@@ -20,4 +20,9 @@ export const ANALYTICS_ROUTES: Routes = [
         (m) => m.MovementsAuditPageComponent
       ),
   },
+  {
+    path: 'audit',
+    pathMatch: 'full',
+    redirectTo: 'movements',
+  },
 ];
