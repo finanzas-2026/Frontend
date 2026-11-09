@@ -1,0 +1,83 @@
+<app-page-header
+  title="Historial de Ventas Registradas"
+  subtitle="Auditoría comercial de transacciones al contado y crédito por cliente"
+/>
+
+@if (isLoading()) {
+  <app-loading-state message="Cargando registro histórico de ventas..." />
+} @else {
+  <mat-card class="history-card">
+    <mat-card-content>
+      <app-data-table
+        [items]="tableItems()"
+        [columns]="columns"
+        emptyTitle="No hay ventas registradas"
+        emptyMessage="Aún no se han emitido ventas en este punto de venta."
+      />
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Selected Sale Details Dialog -->
+  @if (selectedSale(); as sale) {
+    <div
+      class="sale-detail-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-sale-title"
+      (keydown.escape)="selectedSale.set(null)"
+      tabindex="-1"
+    >
+      <div class="sale-detail-modal">
+        <div class="modal-header">
+          <h3 id="modal-sale-title">Comprobante Comercial: {{ sale.code }}</h3>
+          <button
+            type="button"
+            class="close-btn"
+            (click)="selectedSale.set(null)"
+            aria-label="Cerrar detalle"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-meta">
+            <p><strong>Cliente:</strong> {{ sale.customerName }}</p>
+            <p><strong>Modalidad:</strong> {{ sale.paymentMode }}</p>
+            <p><strong>Fecha:</strong> {{ sale.issueDate | date: 'dd/MM/yyyy HH:mm' }}</p>
+            @if (sale.installmentsCount) {
+              <p><strong>Plazo:</strong> {{ sale.installmentsCount }} cuotas</p>
+            }
+          </div>
+
+          <table class="detail-items-table">
+            <thead>
+              <tr>
+                <th>Ítem</th>
+                <th>SKU</th>
+                <th>P. Unit</th>
+                <th>Cant.</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of sale.details; track item.id) {
+                <tr>
+                  <td>{{ item.productName }}</td>
+                  <td>{{ item.sku }}</td>
+                  <td>{{ item.unitPrice.toFormatted() }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>{{ item.subtotal.toFormatted() }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <div class="modal-total">
+            <span>Total Operación:</span>
+            <span class="total-highlight">{{ sale.totalAmount.toFormatted() }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+}

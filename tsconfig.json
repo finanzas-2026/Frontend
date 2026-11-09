@@ -23,10 +23,15 @@
     "module": "preserve",
     "baseUrl": ".",
     "paths": {
+      "@shared": ["src/app/shared/index.ts"],
       "@shared/*": ["src/app/shared/*"],
+      "@financing": ["src/app/financing/index.ts"],
       "@financing/*": ["src/app/financing/*"],
+      "@sales": ["src/app/sales/index.ts"],
       "@sales/*": ["src/app/sales/*"],
+      "@settlements": ["src/app/settlements/index.ts"],
       "@settlements/*": ["src/app/settlements/*"],
+      "@analytics": ["src/app/analytics/index.ts"],
       "@analytics/*": ["src/app/analytics/*"],
       "@mocks/*": ["src/mocks/*"]
     }

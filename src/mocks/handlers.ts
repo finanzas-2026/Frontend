@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { financingHandlers } from './handlers/financing.handler';
+import { salesHandlers } from './handlers/sales.handler';
 
 export const handlers = [
   http.get('*/api/v1/health', () => {
@@ -10,4 +11,5 @@ export const handlers = [
     });
   }),
   ...financingHandlers,
+  ...salesHandlers,
 ];

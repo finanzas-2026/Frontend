@@ -10,4 +10,8 @@ export const routes: Routes = [
     path: 'financing',
     loadChildren: () => import('./financing/presentation/financing.routes').then((m) => m.financingRoutes),
   },
+  {
+    path: 'sales',
+    loadChildren: () => import('./sales/presentation/sales.routes').then((m) => m.SALES_ROUTES),
+  },
 ];

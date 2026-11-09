@@ -16,6 +16,10 @@ export class ToastService {
     });
   }
 
+  success(message: string, duration = 3000): void {
+    this.showSuccess(message, duration);
+  }
+
   showError(message: string, duration = 5000): void {
     this.snackBar.open(message, 'Cerrar', {
       duration,
@@ -25,6 +29,10 @@ export class ToastService {
     });
   }
 
+  error(message: string, duration = 5000): void {
+    this.showError(message, duration);
+  }
+
   showInfo(message: string, duration = 3000): void {
     this.snackBar.open(message, 'Cerrar', {
       duration,
@@ -32,5 +40,9 @@ export class ToastService {
       horizontalPosition: 'end',
       verticalPosition: 'top',
     });
+  }
+
+  info(message: string, duration = 3000): void {
+    this.showInfo(message, duration);
   }
 }
