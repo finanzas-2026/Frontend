@@ -1,0 +1,265 @@
+:host {
+  display: block;
+}
+
+.sign-in-page {
+  --iam-primary: #0369a1;
+  --iam-primary-dark: #075985;
+  --iam-text: #1e293b;
+  --iam-muted: #475569;
+  --iam-border: #cbd5e1;
+  --iam-surface: #ffffff;
+  --iam-background: #f1f5f9;
+  --iam-error: #b91c1c;
+
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+  min-height: 100dvh;
+  background: var(--iam-background);
+}
+
+.brand-panel {
+  position: relative;
+  overflow: hidden;
+  padding: 3rem clamp(2rem, 5vw, 5rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #f8fafc;
+  background: linear-gradient(145deg, #0c4a6e 0%, #0369a1 58%, #0284c7 100%);
+}
+
+.brand-mark {
+  width: 3.25rem;
+  height: 3.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 2rem;
+}
+
+.brand-eyebrow,
+.form-eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.brand-eyebrow {
+  color: #bae6fd;
+}
+
+.brand-panel h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+  margin: 0.5rem 0 1rem;
+  letter-spacing: -0.03em;
+}
+
+.brand-copy {
+  max-width: 34rem;
+  margin: 0;
+  color: #e0f2fe;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.brand-features {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0 0;
+  display: grid;
+  gap: 0.75rem;
+  color: #f0f9ff;
+  font-size: 0.9rem;
+}
+
+.brand-features li::before {
+  content: '';
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.65rem;
+  border-radius: 50%;
+  background: #7dd3fc;
+  vertical-align: 0.1em;
+}
+
+.decorative-line {
+  position: absolute;
+  border: 1px solid rgba(186, 230, 253, 0.24);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.decorative-line--one {
+  width: 26rem;
+  height: 26rem;
+  right: -10rem;
+  bottom: -8rem;
+}
+
+.decorative-line--two {
+  width: 17rem;
+  height: 17rem;
+  right: -4rem;
+  bottom: -3rem;
+}
+
+.form-panel {
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.sign-in-card {
+  width: 100%;
+  max-width: 28rem;
+  border-color: var(--iam-border);
+  border-radius: 1rem;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.sign-in-card mat-card-content {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.form-header {
+  margin-bottom: 1.75rem;
+}
+
+.form-eyebrow {
+  color: var(--iam-primary);
+}
+
+.form-header h1 {
+  margin: 0.4rem 0 0.5rem;
+  color: var(--iam-text);
+  font-size: 1.85rem;
+  line-height: 1.2;
+}
+
+.form-subtitle,
+.form-footer {
+  margin: 0;
+  color: var(--iam-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.field-full {
+  width: 100%;
+}
+
+.password-toggle {
+  color: var(--iam-muted);
+}
+
+.form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.65rem 0.75rem;
+  margin: 0 0 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--iam-error);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  visibility: hidden;
+}
+
+.form-error.is-visible {
+  visibility: visible;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.form-error mat-icon {
+  flex: 0 0 auto;
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.submit-button {
+  width: 100%;
+  min-height: 3rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--iam-primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: var(--iam-primary-dark);
+}
+
+.submit-button mat-spinner {
+  --mdc-circular-progress-active-indicator-color: #ffffff;
+}
+
+.submit-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.form-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid #7dd3fc;
+  outline-offset: 2px;
+}
+
+@media (max-width: 860px) {
+  .sign-in-page {
+    grid-template-columns: 1fr;
+    min-height: 100dvh;
+  }
+
+  .brand-panel {
+    padding: 2rem 1.5rem 2.5rem;
+  }
+
+  .brand-panel h2 {
+    font-size: 2rem;
+  }
+
+  .brand-features {
+    display: none;
+  }
+
+  .form-panel {
+    padding: 1.25rem;
+    align-items: start;
+  }
+
+  .decorative-line--one {
+    width: 18rem;
+    height: 18rem;
+    right: -7rem;
+    bottom: -7rem;
+  }
+
+  .decorative-line--two {
+    display: none;
+  }
+}
