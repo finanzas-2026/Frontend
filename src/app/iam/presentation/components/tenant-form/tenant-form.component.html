@@ -1,0 +1,104 @@
+<form
+  class="tenant-form"
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+  novalidate
+  [attr.aria-busy]="isSaving()"
+>
+  <p class="form-required-note">
+    Los campos marcados con <span aria-hidden="true">*</span> son obligatorios.
+  </p>
+
+  <mat-form-field appearance="outline" class="field-full">
+    <mat-label>Nombre comercial</mat-label>
+    <input
+      matInput
+      formControlName="businessName"
+      autocomplete="organization"
+      aria-required="true"
+    />
+    @if (
+      form.controls.businessName.touched &&
+      form.controls.businessName.hasError('required')
+    ) {
+      <mat-error>El nombre comercial es obligatorio.</mat-error>
+    }
+  </mat-form-field>
+
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>RUC</mat-label>
+      <input
+        matInput
+        formControlName="taxId"
+        inputmode="numeric"
+        maxlength="11"
+        autocomplete="off"
+        aria-required="true"
+        aria-describedby="tax-id-help"
+      />
+      <mat-hint id="tax-id-help">11 dígitos numéricos</mat-hint>
+      @if (
+        form.controls.taxId.touched &&
+        form.controls.taxId.hasError('required')
+      ) {
+        <mat-error>El RUC es obligatorio.</mat-error>
+      } @else if (
+        form.controls.taxId.touched && form.controls.taxId.hasError('pattern')
+      ) {
+        <mat-error>El RUC debe contener exactamente 11 dígitos.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="status" aria-required="true">
+        @for (status of statuses; track status) {
+          <mat-option [value]="status">{{ statusLabel(status) }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.status.touched && form.controls.status.invalid) {
+        <mat-error>Selecciona un estado válido.</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline" class="field-full">
+    <mat-label>Dirección</mat-label>
+    <input
+      matInput
+      formControlName="address"
+      autocomplete="street-address"
+      aria-required="true"
+    />
+    @if (
+      form.controls.address.touched && form.controls.address.hasError('required')
+    ) {
+      <mat-error>La dirección es obligatoria.</mat-error>
+    }
+  </mat-form-field>
+
+  <div class="form-actions">
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="onCancel()"
+      [disabled]="isSaving()"
+    >
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="isSaving()"
+    >
+      @if (isSaving()) {
+        <mat-spinner diameter="18" aria-label="Guardando establecimiento" />
+        <span>Guardando...</span>
+      } @else {
+        <span>{{ isEdit() ? 'Guardar cambios' : 'Guardar tienda' }}</span>
+      }
+    </button>
+  </div>
+</form>

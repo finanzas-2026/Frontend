@@ -1,0 +1,164 @@
+<app-page-header
+  title="Gestión de tiendas"
+  subtitle="Administra los establecimientos y el estado operativo de cada espacio de datos."
+>
+  @if (canManage()) {
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      (click)="openCreate()"
+      [disabled]="isFormOpen() || isSaving()"
+    >
+      <mat-icon aria-hidden="true">add_business</mat-icon>
+      Nueva tienda
+    </button>
+  }
+</app-page-header>
+
+@if (!canManage()) {
+  <mat-card class="access-card" appearance="outlined" role="alert">
+    <mat-card-content>
+      <mat-icon class="access-icon" aria-hidden="true">lock</mat-icon>
+      <h2>Acceso restringido</h2>
+      <p>
+        La administración de establecimientos está reservada al administrador
+        del sistema. Tu rol actual no permite realizar esta operación.
+      </p>
+    </mat-card-content>
+  </mat-card>
+} @else {
+  @if (isFormOpen()) {
+    <mat-card class="form-card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>
+          {{ editingStore() ? 'Editar tienda' : 'Registrar tienda' }}
+        </mat-card-title>
+        <mat-card-subtitle>
+          {{
+            editingStore()
+              ? 'Actualiza la información del establecimiento seleccionado.'
+              : 'Completa los datos para crear un espacio de datos aislado.'
+          }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <app-tenant-form
+          [mode]="formMode()"
+          [initialValue]="formInitialValue()"
+          [isSaving]="isSaving()"
+          (save)="onFormSave($event)"
+          (cancelled)="closeForm()"
+        />
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (actionMessage()) {
+    <div class="feedback feedback-success" role="status" aria-live="polite">
+      <mat-icon aria-hidden="true">check_circle</mat-icon>
+      <span>{{ actionMessage() }}</span>
+    </div>
+  }
+
+  @if (actionError()) {
+    <div class="feedback feedback-error" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <span>{{ actionError() }}</span>
+    </div>
+  }
+
+  @if (tenantStore.isLoading()) {
+    <app-loading-state message="Cargando establecimientos..." />
+  } @else if (loadError()) {
+    <mat-card class="access-card" appearance="outlined" role="alert">
+      <mat-card-content>
+        <mat-icon class="access-icon" aria-hidden="true">cloud_off</mat-icon>
+        <h2>No se pudo cargar la información</h2>
+        <p>{{ loadError() }}</p>
+        <button mat-stroked-button type="button" (click)="loadStores()">
+          Reintentar
+        </button>
+      </mat-card-content>
+    </mat-card>
+  } @else if (tenantStore.stores().length === 0) {
+    <app-empty-state
+      icon="storefront"
+      title="Aún no hay tiendas registradas"
+      message="Registra el primer establecimiento para habilitar su operación independiente."
+    >
+      <button mat-flat-button color="primary" type="button" (click)="openCreate()">
+        Registrar primera tienda
+      </button>
+    </app-empty-state>
+  } @else {
+    <mat-card class="list-card" appearance="outlined">
+      <mat-card-content>
+        <div class="table-scroll">
+          <table class="tenants-table">
+            <caption class="sr-only">
+              Establecimientos registrados en la plataforma
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Nombre comercial</th>
+                <th scope="col">RUC</th>
+                <th scope="col">Dirección</th>
+                <th scope="col">Estado</th>
+                <th scope="col" class="actions-column">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (store of tenantStore.stores(); track store.id) {
+                <tr [class.is-selected]="selectedStoreId() === store.id">
+                  <td>
+                    <button
+                      type="button"
+                      class="store-name-button"
+                      (click)="selectStore(store)"
+                      [attr.aria-pressed]="selectedStoreId() === store.id"
+                    >
+                      {{ store.businessName }}
+                    </button>
+                  </td>
+                  <td class="mono">{{ store.taxId }}</td>
+                  <td>{{ store.address }}</td>
+                  <td>
+                    <span [class]="'status-badge ' + statusClass(store.status)">
+                      {{ statusLabel(store.status) }}
+                    </span>
+                  </td>
+                  <td class="actions-column">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      (click)="openEdit(store)"
+                      [disabled]="isSaving()"
+                      [attr.aria-label]="'Editar ' + store.businessName"
+                    >
+                      <mat-icon aria-hidden="true">edit</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      (click)="toggleStatus(store)"
+                      [disabled]="isSaving()"
+                      [attr.aria-label]="
+                        (store.isActive() ? 'Desactivar ' : 'Activar ') +
+                        store.businessName
+                      "
+                    >
+                      <mat-icon aria-hidden="true">
+                        {{ store.isActive() ? 'toggle_on' : 'toggle_off' }}
+                      </mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+}
