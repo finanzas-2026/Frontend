@@ -30,6 +30,10 @@ export * from './infrastructure/storage/session-token-storage';
 
 // Presentation Reusable Components, Pipes & Layout
 export * from './presentation/layout/app-shell/app-shell.component';
+export * from './presentation/views/layout/layout';
+export * from './presentation/components/sidebar/sidebar';
+export * from './presentation/components/toolbar/toolbar';
+export * from './presentation/components/mobile-navigation/mobile-navigation';
 export * from './presentation/components/page-header/page-header.component';
 export * from './presentation/components/empty-state/empty-state.component';
 export * from './presentation/components/loading-state/loading-state.component';

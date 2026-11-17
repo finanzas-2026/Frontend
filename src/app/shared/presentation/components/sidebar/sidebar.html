@@ -1,0 +1,48 @@
+<aside class="shell-sidebar" [class.collapsed]="!isOpen()" aria-label="Navegación principal">
+  <header class="sidebar-header">
+    <div class="brand-title">Crédito Proximidad</div>
+    <div class="brand-subtitle">UPC — Grupo 5</div>
+  </header>
+
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Inteligencia Gerencial</div>
+    <a routerLink="/analytics/dashboard" routerLinkActive="active-nav-link" class="nav-link">
+      <span class="nav-icon" aria-hidden="true">📊</span>
+      <span>Dashboard MIS</span>
+    </a>
+    <a routerLink="/analytics/audit" routerLinkActive="active-nav-link" class="nav-link">
+      <span class="nav-icon" aria-hidden="true">📜</span>
+      <span>Auditoría de Movimientos</span>
+    </a>
+
+    <div class="nav-group-label">Ventas y Mostrador</div>
+    <a routerLink="/sales/pos" routerLinkActive="active-nav-link" class="nav-link">
+      <span class="nav-icon" aria-hidden="true">🛒</span>
+      <span>Mostrador POS</span>
+    </a>
+    <a routerLink="/sales/history" routerLinkActive="active-nav-link" class="nav-link">
+      <span class="nav-icon" aria-hidden="true">🧾</span>
+      <span>Historial de Ventas</span>
+    </a>
+
+    <div class="nav-group-label">Financiamiento Francés</div>
+    <a routerLink="/financing/simulator" routerLinkActive="active-nav-link" class="nav-link">
+      <span class="nav-icon" aria-hidden="true">🧮</span>
+      <span>Simulador de Cuotas</span>
+    </a>
+
+    <div class="nav-group-label">Liquidaciones y Cobro</div>
+    <a routerLink="/settlements/desk" routerLinkActive="active-nav-link" class="nav-link">
+      <span class="nav-icon" aria-hidden="true">💳</span>
+      <span>Ventanilla de Cobro</span>
+    </a>
+    <a routerLink="/settlements/list" routerLinkActive="active-nav-link" class="nav-link">
+      <span class="nav-icon" aria-hidden="true">📁</span>
+      <span>Cierres Mensuales</span>
+    </a>
+    <a routerLink="/settlements/portal" routerLinkActive="active-nav-link" class="nav-link">
+      <span class="nav-icon" aria-hidden="true">👤</span>
+      <span>Portal del Cliente</span>
+    </a>
+  </nav>
+</aside>
