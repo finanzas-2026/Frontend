@@ -93,7 +93,7 @@ describe('IAM application layer independence', () => {
   const sources = collectApplicationSources(APPLICATION_DIR);
 
   it('has application sources to inspect', () => {
-    expect(sources.length).toBeGreaterThanOrEqual(6);
+    expect(sources.length).toBeGreaterThanOrEqual(5);
   });
 
   it('does not import IAM Infrastructure, HTTP clients, resources or assemblers', () => {

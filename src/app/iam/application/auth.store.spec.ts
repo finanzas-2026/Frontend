@@ -1,10 +1,14 @@
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppError } from '@shared/application/app-error';
 import { UserRoles } from '../domain/constants/user-roles.constant';
 import { UserStatuses } from '../domain/enums/user-status.enum';
 import { AuthSession, SessionUser } from './auth-session';
 import { AuthStore } from './auth.store';
+import { AUTH_GATEWAY } from './auth.gateway';
+import { TOKEN_STORAGE_PORT } from '@shared/infrastructure/storage/token-storage.port';
+import { UserStore } from './user.store';
+import { TenantStore } from './tenant.store';
 
 function sessionUser(overrides: Partial<SessionUser> = {}): SessionUser {
   return {
@@ -26,7 +30,14 @@ function session(overrides: Partial<SessionUser> = {}): AuthSession {
 
 function setupStore(): AuthStore {
   TestBed.resetTestingModule();
-  TestBed.configureTestingModule({});
+  TestBed.configureTestingModule({
+    providers: [
+      { provide: AUTH_GATEWAY, useValue: { signIn: vi.fn(), signUp: vi.fn() } },
+      { provide: TOKEN_STORAGE_PORT, useValue: { getToken: () => null, setToken: vi.fn(), removeToken: vi.fn() } },
+      { provide: UserStore, useValue: { clearState: vi.fn() } },
+      { provide: TenantStore, useValue: { clearState: vi.fn() } },
+    ],
+  });
   return TestBed.inject(AuthStore);
 }
 

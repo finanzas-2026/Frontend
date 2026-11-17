@@ -8,7 +8,6 @@ import { UserRole, UserRoles } from '../../../domain/constants/user-roles.consta
 import { UserStatuses } from '../../../domain/enums/user-status.enum';
 import { AuthSession } from '../../../application/auth-session';
 import { AuthStore } from '../../../application/auth.store';
-import { AuthenticationCoordinator } from '../../../application/authentication.coordinator';
 import { SignInPage } from './sign-in.page';
 
 const SESSION: AuthSession = {
@@ -42,30 +41,29 @@ function deferred<T>(): {
 describe('SignInPage', () => {
   let fixture: ComponentFixture<SignInPage>;
   let component: SignInPage;
-  let coordinator: { signIn: ReturnType<typeof vi.fn> };
   let router: { navigateByUrl: ReturnType<typeof vi.fn> };
   let authStore: {
     isLoading: WritableSignal<boolean>;
     isAuthenticated: WritableSignal<boolean>;
     isSuperAdmin: WritableSignal<boolean>;
     currentRole: WritableSignal<UserRole | null>;
+    signIn: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
-    coordinator = { signIn: vi.fn() };
     router = { navigateByUrl: vi.fn().mockResolvedValue(true) };
     authStore = {
       isLoading: signal(false),
       isAuthenticated: signal(false),
       isSuperAdmin: signal(false),
       currentRole: signal(null),
+      signIn: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
       imports: [SignInPage],
       providers: [
         provideNoopAnimations(),
-        { provide: AuthenticationCoordinator, useValue: coordinator },
         { provide: AuthStore, useValue: authStore },
         { provide: Router, useValue: router },
       ],
@@ -112,20 +110,20 @@ describe('SignInPage', () => {
     await fixture.whenStable();
 
     expect(component.form.invalid).toBe(true);
-    expect(coordinator.signIn).not.toHaveBeenCalled();
+    expect(authStore.signIn).not.toHaveBeenCalled();
     expect(host().textContent).toContain('El usuario es obligatorio.');
     expect(host().textContent).toContain('La contraseña es obligatoria.');
   });
 
   it('sends trimmed credentials through AuthenticationCoordinator', async () => {
-    coordinator.signIn.mockResolvedValue(SESSION);
+    authStore.signIn.mockResolvedValue(SESSION);
     authStore.isAuthenticated.set(true);
     fill('  superadmin  ', 'secret');
 
     submitButton().click();
     await fixture.whenStable();
 
-    expect(coordinator.signIn).toHaveBeenCalledWith({
+    expect(authStore.signIn).toHaveBeenCalledWith({
       username: 'superadmin',
       password: 'secret',
     });
@@ -133,7 +131,7 @@ describe('SignInPage', () => {
 
   it('disables the submit button and displays progress while pending', async () => {
     const pending = deferred<AuthSession>();
-    coordinator.signIn.mockReturnValue(pending.promise);
+    authStore.signIn.mockReturnValue(pending.promise);
     fill('superadmin', 'secret');
 
     const submission = component.onSubmit();
@@ -152,7 +150,7 @@ describe('SignInPage', () => {
   });
 
   it('shows a generic message for invalid credentials', async () => {
-    coordinator.signIn.mockRejectedValue(
+    authStore.signIn.mockRejectedValue(
       new AppError('INVALID_CREDENTIALS', 'Detalle técnico', 401)
     );
     fill('superadmin', 'wrong');
@@ -168,7 +166,7 @@ describe('SignInPage', () => {
   });
 
   it('shows the suspension message when Application reports a suspended store', async () => {
-    coordinator.signIn.mockRejectedValue(
+    authStore.signIn.mockRejectedValue(
       new AppError('STORE_SUSPENDED', 'Store inactive', 403)
     );
     fill('store.admin', 'secret');
@@ -183,7 +181,7 @@ describe('SignInPage', () => {
   });
 
   it('distinguishes communication failures from invalid credentials', async () => {
-    coordinator.signIn.mockRejectedValue(
+    authStore.signIn.mockRejectedValue(
       new AppError('SERVER_ERROR', 'Internal detail', 503)
     );
     fill('superadmin', 'secret');
@@ -199,7 +197,7 @@ describe('SignInPage', () => {
   });
 
   it('does not disguise unexpected errors as invalid credentials', async () => {
-    coordinator.signIn.mockRejectedValue(
+    authStore.signIn.mockRejectedValue(
       new AppError('IAM_INVALID_AUTH_SESSION', 'Invalid session')
     );
     fill('superadmin', 'secret');
@@ -217,7 +215,7 @@ describe('SignInPage', () => {
   });
 
   it('navigates to tenant management after a super admin signs in', async () => {
-    coordinator.signIn.mockResolvedValue(SESSION);
+    authStore.signIn.mockResolvedValue(SESSION);
     authStore.isAuthenticated.set(true);
     authStore.isSuperAdmin.set(true);
     authStore.currentRole.set(UserRoles.SUPER_ADMIN);
@@ -247,7 +245,7 @@ describe('SignInPage', () => {
   });
 
   it('clears the password after the operation completes', async () => {
-    coordinator.signIn.mockRejectedValue(new AppError('AUTH_FAILED', 'fail', 401));
+    authStore.signIn.mockRejectedValue(new AppError('AUTH_FAILED', 'fail', 401));
     fill('superadmin', 'secret');
 
     submitButton().click();
