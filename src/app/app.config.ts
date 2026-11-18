@@ -9,6 +9,7 @@ import { provideFinancing } from './financing/infrastructure/financing.providers
 import { provideSales } from './sales/infrastructure/sales.providers';
 import { provideSettlements } from './settlements/infrastructure/settlements.providers';
 import { provideAnalytics } from './analytics/infrastructure/analytics.providers';
+import { provideIam } from './iam/infrastructure/iam.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,5 +21,6 @@ export const appConfig: ApplicationConfig = {
     provideSales(),
     provideSettlements(),
     provideAnalytics(),
+    provideIam(),
   ],
 };

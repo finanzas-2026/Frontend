@@ -9,7 +9,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { AppError } from '@shared/application/app-error';
 import { AuthStore } from '../../../application/auth.store';
-import { AuthenticationCoordinator } from '../../../application/authentication.coordinator';
 
 const SUSPENDED_STORE_CODES = new Set([
   'STORE_SUSPENDED',
@@ -47,7 +46,6 @@ const UNEXPECTED_MESSAGE = 'No se pudo iniciar sesión. Intenta nuevamente.';
 })
 export class SignInPage {
   private readonly formBuilder = inject(FormBuilder);
-  private readonly coordinator = inject(AuthenticationCoordinator);
   private readonly router = inject(Router);
 
   readonly authStore = inject(AuthStore);
@@ -67,6 +65,12 @@ export class SignInPage {
     this.showPassword.update((visible) => !visible);
   }
 
+  enterWithoutAuthentication(): void {
+    // Temporary development-only navigation. It does not create a session,
+    // modify AuthStore or imply that the user is authenticated.
+    void this.router.navigateByUrl('/financing/simulator');
+  }
+
   async onSubmit(): Promise<void> {
     this.form.markAllAsTouched();
     this.errorMessage.set(null);
@@ -79,7 +83,7 @@ export class SignInPage {
     const { username, password } = this.form.getRawValue();
 
     try {
-      await this.coordinator.signIn({ username: username.trim(), password });
+      await this.authStore.signIn({ username: username.trim(), password });
 
       if (!this.authStore.isAuthenticated()) {
         this.errorMessage.set(UNEXPECTED_MESSAGE);

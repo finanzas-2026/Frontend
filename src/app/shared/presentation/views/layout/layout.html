@@ -1,0 +1,13 @@
+<div class="app-layout">
+  <app-sidebar [isOpen]="isSidebarOpen()" />
+
+  <div class="app-layout__main">
+    <app-toolbar (menuToggle)="toggleSidebar()" />
+
+    <main class="app-layout__content">
+      <router-outlet />
+    </main>
+
+    <app-mobile-navigation />
+  </div>
+</div>

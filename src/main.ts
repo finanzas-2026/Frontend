@@ -1,6 +1,6 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
-import { AppComponent } from './app/app.component';
+import { App } from './app/app';
 import { environment } from './environments/environment';
 
 async function prepareApp(): Promise<void> {
@@ -16,5 +16,5 @@ async function prepareApp(): Promise<void> {
 }
 
 prepareApp()
-  .then(() => bootstrapApplication(AppComponent, appConfig))
+  .then(() => bootstrapApplication(App, appConfig))
   .catch((err: unknown) => console.error(err));
