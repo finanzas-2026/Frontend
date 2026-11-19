@@ -17,7 +17,4 @@ export const environment = {
   monthlySettlementsEndpoint: '/monthly_settlements',
   paymentsEndpoint: '/payments',
   amortizationSchedulesEndpoint: '/amortization_schedules',
-
-  useFakeApi: false,
-  apiBaseUrl: '/api/v1',
 };
