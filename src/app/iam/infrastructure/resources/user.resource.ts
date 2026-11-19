@@ -1,18 +1,11 @@
-import {
-  BaseResource,
-  BaseResponse,
-} from '@shared/infrastructure/base-response';
+import { BaseResource } from '@shared';
 
 /**
- * HTTP representation of a persisted user.
+ * Raw `users` record as returned by JSON Server (`db.json`).
  *
- * `db/db.json` stores users with an `id` primary key (the conceptual ER
- * diagram calls it `user_id`, but the actual JSON payload does not). `store_id`
- * is the tenant relationship and may be null for platform-wide users.
- *
- * `password_hash` is part of the persisted representation and is required by
- * the IAM domain entity. The backend is expected to redact it on read models
- * exposed to untrusted clients; this adapter keeps the honest wire shape.
+ * Property names mirror the HTTP payload (`snake_case`); the Domain names are
+ * applied by `UserAssembler`. The primary key is `id` in `db.json`, even though
+ * the ER diagram labels it `user_id`.
  */
 export interface UserResource extends BaseResource {
   readonly store_id: number | null;
@@ -23,15 +16,4 @@ export interface UserResource extends BaseResource {
   readonly email: string;
   readonly user_type: string;
   readonly status: string;
-}
-
-/**
- * `json-server` returns a bare array for collection endpoints. `BaseApiEndpoint`
- * constrains its response generic to `BaseResponse`, so this interface models
- * both the real array payload and the optional wrapped shape without modifying
- * the shared contract.
- */
-export interface UserCollectionResponse extends BaseResponse<UserResource[]> {
-  readonly length?: number;
-  readonly [index: number]: UserResource | undefined;
 }

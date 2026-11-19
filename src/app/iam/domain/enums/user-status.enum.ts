@@ -1,11 +1,11 @@
-export const UserStatuses = Object.freeze({
+/**
+ * Native TypeScript enums are forbidden by the project lint rules, so this
+ * enumeration uses the same const-object convention as Shared Domain.
+ */
+export const UserStatuses = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
-  SUSPENDED: 'SUSPENDED',
-} as const);
+  BLOCKED: 'BLOCKED',
+} as const;
 
 export type UserStatus = (typeof UserStatuses)[keyof typeof UserStatuses];
-
-export function isUserStatus(value: string): value is UserStatus {
-  return Object.values(UserStatuses).includes(value as UserStatus);
-}

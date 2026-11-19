@@ -1,37 +1,68 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Service } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
-import { BaseApiEndpoint } from '@shared/infrastructure/base-api-endpoint';
-import { API_BASE_URL } from '@shared/infrastructure/http/api-base-url.token';
+import { BaseApi } from '@shared';
 import { environment } from '../../../../environments/environment';
 import { Store } from '../../domain/model/store.entity';
 import { StoreAssembler } from '../assemblers/store.assembler';
-import {
-  StoreCollectionResponse,
-  StoreResource,
-} from '../resources/store.resource';
+import { StoreResource } from '../resources/store.resource';
 
-@Service()
-export class StoreApi extends BaseApiEndpoint<
-  Store,
-  StoreResource,
-  StoreCollectionResponse,
-  StoreAssembler
-> {
+/**
+ * HTTP adapter for the `stores` collection of JSON Server.
+ *
+ * It uses the project API base URL and endpoint configured in `environment`;
+ * no host or route is hardcoded here.
+ */
+@Injectable({ providedIn: 'root' })
+export class StoreApi extends BaseApi {
+  private readonly assembler = inject(StoreAssembler);
+
   constructor() {
-    super(
-      inject(HttpClient),
-      `${inject(API_BASE_URL)}${environment.storesEndpoint}`,
-      inject(StoreAssembler),
-    );
+    const http = inject(HttpClient);
+    super(http, `${environment.salesCreditBaseApi}${environment.storesEndpoint}`);
   }
 
-  findByTaxId(taxId: string): Observable<Store | null> {
-    const query = `tax_id=${encodeURIComponent(taxId)}`;
+  getAll(): Observable<Store[]> {
+    return this.http
+      .get<StoreResource[]>(this.basePath)
+      .pipe(
+        map((resources) => this.assembler.toEntitiesFromResponse(resources)),
+        catchError((error: unknown) => this.handleError(error))
+      );
+  }
 
-    return this.http.get<StoreCollectionResponse>(`${this.basePath}?${query}`).pipe(
-      map((response) => this.assembler.toEntitiesFromResponse(response)[0] ?? null),
-      catchError((error: unknown) => this.handleError(error)),
-    );
+  getById(id: number): Observable<Store> {
+    return this.http
+      .get<StoreResource>(`${this.basePath}/${id}`)
+      .pipe(
+        map((resource) => this.assembler.toEntityFromResource(resource)),
+        catchError((error: unknown) => this.handleError(error))
+      );
+  }
+
+  create(store: Store): Observable<Store> {
+    const resource = this.assembler.toResourceFromEntity(store);
+    return this.http
+      .post<StoreResource>(this.basePath, resource)
+      .pipe(
+        map((created) => this.assembler.toEntityFromResource(created)),
+        catchError((error: unknown) => this.handleError(error))
+      );
+  }
+
+  update(store: Store): Observable<Store> {
+    const resource = this.assembler.toResourceFromEntity(store);
+    return this.http
+      .put<StoreResource>(`${this.basePath}/${store.id}`, resource)
+      .pipe(
+        map((updated) => this.assembler.toEntityFromResource(updated)),
+        catchError((error: unknown) => this.handleError(error))
+      );
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http
+      .delete<void>(`${this.basePath}/${id}`)
+      .pipe(catchError((error: unknown) => this.handleError(error)));
   }
 }

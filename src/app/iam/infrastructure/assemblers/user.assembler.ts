@@ -1,22 +1,25 @@
-import { Service } from '@angular/core';
-import { BaseAssembler } from '@shared/infrastructure/base-assembler';
-import { UserRole, isUserRole } from '../../domain/constants/user-roles.constant';
-import { UserStatus, isUserStatus } from '../../domain/enums/user-status.enum';
-import { IamDomainError } from '../../domain/exceptions/iam-domain-error';
+import { Injectable } from '@angular/core';
+import { BaseAssembler } from '@shared';
+import { UserRole, UserRoles } from '../../domain/constants/user-roles.constant';
+import { UserStatus, UserStatuses } from '../../domain/enums/user-status.enum';
 import { User } from '../../domain/model/user.entity';
-import {
-  UserCollectionResponse,
-  UserResource,
-} from '../resources/user.resource';
+import { UserResource } from '../resources/user.resource';
 
-@Service()
-export class UserAssembler implements BaseAssembler<User, UserResource, UserCollectionResponse> {
+const KNOWN_ROLES = Object.values(UserRoles);
+const KNOWN_STATUSES = Object.values(UserStatuses);
+
+/**
+ * Maps `users` HTTP payloads to the Domain `User` and back.
+ *
+ * It only transforms representations: no HTTP, no state and no defaults that
+ * could hide inconsistent data.
+ */
+@Injectable({ providedIn: 'root' })
+export class UserAssembler
+  implements BaseAssembler<User, UserResource, UserResource[]>
+{
   toEntityFromResource(resource: UserResource): User {
-    if (!resource) {
-      throw IamDomainError.requiredField('user');
-    }
-
-    return new User({
+    return {
       id: resource.id,
       storeId: resource.store_id,
       username: resource.username,
@@ -24,9 +27,9 @@ export class UserAssembler implements BaseAssembler<User, UserResource, UserColl
       firstName: resource.first_name,
       lastName: resource.last_name,
       email: resource.email,
-      role: parseRole(resource.user_type),
-      status: parseStatus(resource.status),
-    });
+      userType: toUserRole(resource.user_type),
+      status: toUserStatus(resource.status),
+    };
   }
 
   toResourceFromEntity(entity: User): UserResource {
@@ -38,41 +41,26 @@ export class UserAssembler implements BaseAssembler<User, UserResource, UserColl
       first_name: entity.firstName,
       last_name: entity.lastName,
       email: entity.email,
-      user_type: entity.role,
+      user_type: entity.userType,
       status: entity.status,
     };
   }
 
-  toEntitiesFromResponse(response: UserCollectionResponse): User[] {
-    return extractResources(response).map((resource) => this.toEntityFromResource(resource));
+  toEntitiesFromResponse(response: UserResource[]): User[] {
+    return response.map((resource) => this.toEntityFromResource(resource));
   }
 }
 
-function extractResources(response: UserCollectionResponse): UserResource[] {
-  if (response.data) {
-    return response.data;
+function toUserRole(value: string): UserRole {
+  if (!KNOWN_ROLES.includes(value as UserRole)) {
+    throw new Error(`Rol de usuario desconocido: "${value}".`);
   }
-
-  const resources: UserResource[] = [];
-  for (let index = 0; index < (response.length ?? 0); index += 1) {
-    const resource = response[index];
-    if (resource) {
-      resources.push(resource);
-    }
-  }
-  return resources;
+  return value as UserRole;
 }
 
-function parseRole(value: string): UserRole {
-  if (!isUserRole(value)) {
-    throw IamDomainError.invalidRole(value);
+function toUserStatus(value: string): UserStatus {
+  if (!KNOWN_STATUSES.includes(value as UserStatus)) {
+    throw new Error(`Estado de usuario desconocido: "${value}".`);
   }
-  return value;
-}
-
-function parseStatus(value: string): UserStatus {
-  if (!isUserStatus(value)) {
-    throw IamDomainError.invalidUserStatus(value);
-  }
-  return value;
+  return value as UserStatus;
 }

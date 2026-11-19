@@ -1,0 +1,353 @@
+<section class="sign-up-page" aria-label="Registro de establecimiento">
+  <app-auth-brand-panel
+    eyebrow="Nueva tienda"
+    title="Crédito Proximidad"
+    description="Configura tu establecimiento y la cuenta administradora en tres pasos. Al finalizar podrás iniciar sesión con las credenciales registradas."
+    [features]="brandFeatures"
+  />
+
+  <div class="form-panel">
+    <mat-card class="wizard-card" appearance="outlined">
+      <mat-card-content>
+        @if (isSuccess()) {
+          <div class="success-panel" role="status">
+            <mat-icon class="success-icon" aria-hidden="true">check_circle</mat-icon>
+            <h1>Registro completado</h1>
+            <p>
+              La tienda y la cuenta administradora fueron creadas correctamente.
+              Ya puedes iniciar sesión.
+            </p>
+            <a
+              mat-flat-button
+              color="primary"
+              routerLink="/iam/sign-in"
+              class="primary-button"
+            >
+              Iniciar sesión
+            </a>
+          </div>
+        } @else {
+          <header class="form-header">
+            <p class="form-eyebrow">Registro guiado</p>
+            <h1>Registra tu establecimiento</h1>
+            <p class="form-subtitle">
+              Completa los tres pasos para crear la tienda y su cuenta
+              administradora.
+            </p>
+          </header>
+
+          <ol class="step-indicator" aria-label="Progreso del registro">
+            @for (item of steps; track item.number) {
+              <li
+                class="step"
+                [class.is-active]="step() === item.number"
+                [class.is-complete]="step() > item.number"
+              >
+                <span class="step-number">{{ item.number }}</span>
+                <span class="step-label">{{ item.label }}</span>
+              </li>
+            }
+          </ol>
+
+          <form
+            [formGroup]="form"
+            (ngSubmit)="onSubmit()"
+            novalidate
+            [attr.aria-busy]="authStore.isLoading()"
+          >
+            @if (step() === 1) {
+              <div class="step-content" formGroupName="store">
+                <div class="field-grid">
+                  <mat-form-field appearance="outline" class="field-span-2">
+                    <mat-label>Nombre comercial</mat-label>
+                    <input
+                      matInput
+                      formControlName="businessName"
+                      autocomplete="organization"
+                      aria-required="true"
+                    />
+                    @if (
+                      storeForm.controls.businessName.touched &&
+                      storeForm.controls.businessName.hasError('required')
+                    ) {
+                      <mat-error>El nombre comercial es obligatorio.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="field-span-2">
+                    <mat-label>RUC</mat-label>
+                    <input
+                      matInput
+                      formControlName="taxId"
+                      inputmode="numeric"
+                      maxlength="11"
+                      autocomplete="off"
+                      aria-required="true"
+                    />
+                    @if (
+                      storeForm.controls.taxId.touched &&
+                      storeForm.controls.taxId.hasError('required')
+                    ) {
+                      <mat-error>El RUC es obligatorio.</mat-error>
+                    } @else if (
+                      storeForm.controls.taxId.touched &&
+                      storeForm.controls.taxId.hasError('pattern')
+                    ) {
+                      <mat-error>El RUC debe contener 11 dígitos.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="field-span-2">
+                    <mat-label>Dirección</mat-label>
+                    <input
+                      matInput
+                      formControlName="address"
+                      autocomplete="street-address"
+                      aria-required="true"
+                    />
+                    @if (
+                      storeForm.controls.address.touched &&
+                      storeForm.controls.address.hasError('required')
+                    ) {
+                      <mat-error>La dirección es obligatoria.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+            }
+
+            @if (step() === 2) {
+              <div class="step-content" formGroupName="admin">
+                <div class="field-grid">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Nombres</mat-label>
+                    <input
+                      matInput
+                      formControlName="firstName"
+                      autocomplete="given-name"
+                      aria-required="true"
+                    />
+                    @if (
+                      adminForm.controls.firstName.touched &&
+                      adminForm.controls.firstName.hasError('required')
+                    ) {
+                      <mat-error>Los nombres son obligatorios.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Apellidos</mat-label>
+                    <input
+                      matInput
+                      formControlName="lastName"
+                      autocomplete="family-name"
+                      aria-required="true"
+                    />
+                    @if (
+                      adminForm.controls.lastName.touched &&
+                      adminForm.controls.lastName.hasError('required')
+                    ) {
+                      <mat-error>Los apellidos son obligatorios.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="field-span-2">
+                    <mat-label>Correo electrónico</mat-label>
+                    <input
+                      matInput
+                      formControlName="email"
+                      type="email"
+                      autocomplete="email"
+                      aria-required="true"
+                    />
+                    @if (
+                      adminForm.controls.email.touched &&
+                      adminForm.controls.email.hasError('required')
+                    ) {
+                      <mat-error>El correo electrónico es obligatorio.</mat-error>
+                    } @else if (
+                      adminForm.controls.email.touched &&
+                      adminForm.controls.email.hasError('email')
+                    ) {
+                      <mat-error>Ingresa un correo electrónico válido.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="field-span-2">
+                    <mat-label>Nombre de usuario</mat-label>
+                    <input
+                      matInput
+                      formControlName="username"
+                      autocomplete="username"
+                      autocapitalize="none"
+                      spellcheck="false"
+                      aria-required="true"
+                    />
+                    @if (
+                      adminForm.controls.username.touched &&
+                      adminForm.controls.username.hasError('required')
+                    ) {
+                      <mat-error>El nombre de usuario es obligatorio.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Contraseña</mat-label>
+                    <input
+                      matInput
+                      formControlName="password"
+                      [type]="showPassword() ? 'text' : 'password'"
+                      autocomplete="new-password"
+                      aria-required="true"
+                    />
+                    <button
+                      mat-icon-button
+                      matSuffix
+                      type="button"
+                      [attr.aria-label]="
+                        showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                      "
+                      [attr.aria-pressed]="showPassword()"
+                      (click)="togglePasswordVisibility()"
+                    >
+                      <mat-icon aria-hidden="true">
+                        {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                      </mat-icon>
+                    </button>
+                    @if (
+                      adminForm.controls.password.touched &&
+                      adminForm.controls.password.hasError('required')
+                    ) {
+                      <mat-error>La contraseña es obligatoria.</mat-error>
+                    } @else if (
+                      adminForm.controls.password.touched &&
+                      adminForm.controls.password.hasError('minlength')
+                    ) {
+                      <mat-error>
+                        La contraseña debe tener al menos
+                        {{ minPasswordLength }} caracteres.
+                      </mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Confirmar contraseña</mat-label>
+                    <input
+                      matInput
+                      formControlName="confirmPassword"
+                      [type]="showPassword() ? 'text' : 'password'"
+                      autocomplete="new-password"
+                      aria-required="true"
+                    />
+                    @if (
+                      adminForm.controls.confirmPassword.touched &&
+                      adminForm.controls.confirmPassword.hasError('required')
+                    ) {
+                      <mat-error>Confirma la contraseña.</mat-error>
+                    } @else if (
+                      adminForm.controls.confirmPassword.touched &&
+                      adminForm.hasError('passwordsMismatch')
+                    ) {
+                      <mat-error>Las contraseñas no coinciden.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+            }
+
+            @if (step() === 3) {
+              <div class="step-content">
+                <div class="summary-grid">
+                  <section class="summary-card">
+                    <h2>Establecimiento</h2>
+                    <dl>
+                      <dt>Nombre comercial</dt>
+                      <dd>{{ storeForm.controls.businessName.value }}</dd>
+                      <dt>RUC</dt>
+                      <dd>{{ storeForm.controls.taxId.value }}</dd>
+                      <dt>Dirección</dt>
+                      <dd>{{ storeForm.controls.address.value }}</dd>
+                    </dl>
+                  </section>
+
+                  <section class="summary-card">
+                    <h2>Cuenta administradora</h2>
+                    <dl>
+                      <dt>Nombres</dt>
+                      <dd>{{ adminForm.controls.firstName.value }}</dd>
+                      <dt>Apellidos</dt>
+                      <dd>{{ adminForm.controls.lastName.value }}</dd>
+                      <dt>Correo electrónico</dt>
+                      <dd>{{ adminForm.controls.email.value }}</dd>
+                      <dt>Nombre de usuario</dt>
+                      <dd>{{ adminForm.controls.username.value }}</dd>
+                      <dt>Rol asignado</dt>
+                      <dd>
+                        <span class="role-badge">{{ assignedRole }}</span>
+                      </dd>
+                    </dl>
+                  </section>
+                </div>
+                <p class="summary-note">
+                  La contraseña no se muestra por seguridad.
+                </p>
+              </div>
+            }
+
+            @if (authStore.error()) {
+              <div class="form-error" role="alert" aria-live="assertive">
+                <mat-icon aria-hidden="true">error_outline</mat-icon>
+                <span>{{ authStore.error() }}</span>
+              </div>
+            }
+
+            <div class="wizard-actions">
+              @if (step() > 1) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="authStore.isLoading()"
+                  (click)="back()"
+                >
+                  Anterior
+                </button>
+              }
+
+              @if (step() < 3) {
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="submit"
+                  class="primary-button"
+                  [disabled]="authStore.isLoading()"
+                >
+                  Continuar
+                </button>
+              } @else {
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="submit"
+                  class="primary-button"
+                  [disabled]="authStore.isLoading()"
+                >
+                  @if (authStore.isLoading()) {
+                    <mat-spinner diameter="20" aria-label="Creando tienda" />
+                    <span>Creando...</span>
+                  } @else {
+                    <span>Crear tienda y cuenta</span>
+                  }
+                </button>
+              }
+            </div>
+          </form>
+
+          <p class="form-footer">
+            ¿Ya tienes cuenta?
+            <a routerLink="/iam/sign-in">Inicia sesión</a>
+          </p>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</section>

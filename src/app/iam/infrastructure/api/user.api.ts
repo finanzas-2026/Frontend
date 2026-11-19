@@ -1,52 +1,86 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Service } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
-import { BaseApiEndpoint } from '@shared/infrastructure/base-api-endpoint';
-import { API_BASE_URL } from '@shared/infrastructure/http/api-base-url.token';
+import { BaseApi } from '@shared';
 import { environment } from '../../../../environments/environment';
 import { User } from '../../domain/model/user.entity';
 import { UserAssembler } from '../assemblers/user.assembler';
-import {
-  UserCollectionResponse,
-  UserResource,
-} from '../resources/user.resource';
+import { UserResource } from '../resources/user.resource';
 
-@Service()
-export class UserApi extends BaseApiEndpoint<
-  User,
-  UserResource,
-  UserCollectionResponse,
-  UserAssembler
-> {
+/**
+ * HTTP adapter for the `users` collection of JSON Server.
+ *
+ * It uses the project API base URL and endpoint configured in `environment`;
+ * no host or route is hardcoded here.
+ */
+@Injectable({ providedIn: 'root' })
+export class UserApi extends BaseApi {
+  private readonly assembler = inject(UserAssembler);
+
   constructor() {
-    super(
-      inject(HttpClient),
-      `${inject(API_BASE_URL)}${environment.usersEndpoint}`,
-      inject(UserAssembler),
-    );
+    const http = inject(HttpClient);
+    super(http, `${environment.salesCreditBaseApi}${environment.usersEndpoint}`);
   }
 
-  findByUsername(username: string): Observable<User | null> {
-    return this.search('username', username).pipe(map((users) => users[0] ?? null));
+  getAll(): Observable<User[]> {
+    return this.http
+      .get<UserResource[]>(this.basePath)
+      .pipe(
+        map((resources) => this.assembler.toEntitiesFromResponse(resources)),
+        catchError((error: unknown) => this.handleError(error))
+      );
   }
 
-  findByEmail(email: string): Observable<User | null> {
-    return this.search('email', email).pipe(map((users) => users[0] ?? null));
+  getById(id: number): Observable<User> {
+    return this.http
+      .get<UserResource>(`${this.basePath}/${id}`)
+      .pipe(
+        map((resource) => this.assembler.toEntityFromResource(resource)),
+        catchError((error: unknown) => this.handleError(error))
+      );
   }
 
-  findByStoreId(storeId: number): Observable<User[]> {
-    return this.search('store_id', storeId);
+  searchByUsername(username: string): Observable<User[]> {
+    return this.http
+      .get<UserResource[]>(this.basePath, { params: { username } })
+      .pipe(
+        map((resources) => this.assembler.toEntitiesFromResponse(resources)),
+        catchError((error: unknown) => this.handleError(error))
+      );
   }
 
-  private search(
-    field: 'username' | 'email' | 'store_id',
-    value: string | number,
-  ): Observable<User[]> {
-    const query = `${field}=${encodeURIComponent(String(value))}`;
+  searchByEmail(email: string): Observable<User[]> {
+    return this.http
+      .get<UserResource[]>(this.basePath, { params: { email } })
+      .pipe(
+        map((resources) => this.assembler.toEntitiesFromResponse(resources)),
+        catchError((error: unknown) => this.handleError(error))
+      );
+  }
 
-    return this.http.get<UserCollectionResponse>(`${this.basePath}?${query}`).pipe(
-      map((response) => this.assembler.toEntitiesFromResponse(response)),
-      catchError((error: unknown) => this.handleError(error)),
-    );
+  create(user: User): Observable<User> {
+    const resource = this.assembler.toResourceFromEntity(user);
+    return this.http
+      .post<UserResource>(this.basePath, resource)
+      .pipe(
+        map((created) => this.assembler.toEntityFromResource(created)),
+        catchError((error: unknown) => this.handleError(error))
+      );
+  }
+
+  update(user: User): Observable<User> {
+    const resource = this.assembler.toResourceFromEntity(user);
+    return this.http
+      .put<UserResource>(`${this.basePath}/${user.id}`, resource)
+      .pipe(
+        map((updated) => this.assembler.toEntityFromResource(updated)),
+        catchError((error: unknown) => this.handleError(error))
+      );
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http
+      .delete<void>(`${this.basePath}/${id}`)
+      .pipe(catchError((error: unknown) => this.handleError(error)));
   }
 }
