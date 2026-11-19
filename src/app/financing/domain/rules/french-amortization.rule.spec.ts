@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { calculateFrenchSchedule } from './french-engine';
+import { calculateFrenchSchedule } from './french-amortization.rule';
 
-describe('French Amortization Engine (Mocks & Financial Equations)', () => {
+describe('French Amortization Rule (Financial Equations)', () => {
   it('F2-1: Validates Caso de Prueba 1 del Informe exact parameters and terminal adjustment', () => {
     // Parámetros: P = 1500.00, TNA = 24.0000000% con capitalización diaria (m=360), n = 3 meses, tg = 15 días
     const schedule = calculateFrenchSchedule({

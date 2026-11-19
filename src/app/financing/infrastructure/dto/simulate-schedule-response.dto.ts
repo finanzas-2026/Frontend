@@ -1,4 +1,4 @@
-import { BaseResource, BaseResponse } from '@shared/index';
+import { BaseResource } from '@shared/index';
 
 export interface SimulatedInstallmentResource extends BaseResource {
   installment_number: number;
@@ -10,7 +10,7 @@ export interface SimulatedInstallmentResource extends BaseResource {
   is_grace_period: boolean;
 }
 
-export interface SimulateScheduleResponseDto extends BaseResponse<SimulatedInstallmentResource[]> {
+export interface SimulateScheduleResponseDto {
   initial_capital: string;
   capitalized_capital: string;
   grace_days: number;

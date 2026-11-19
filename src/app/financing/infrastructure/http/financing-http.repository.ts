@@ -23,6 +23,8 @@ export class FinancingHttpRepository extends BaseApi implements FinancingReposit
   }
 
   simulateSchedule(command: SimulateScheduleCommand): Observable<AmortizationSchedule> {
+    // TODO(BACKEND-INTEGRATION): Implementar esta operación
+    // cuando exista el endpoint correspondiente en el backend real.
     const payload: SimulateScheduleRequestDto = {
       initial_capital: command.initialCapital.toString(),
       rate_value: command.rate.toFractionString(),
