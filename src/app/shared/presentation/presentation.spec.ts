@@ -4,8 +4,6 @@ import { PageHeaderComponent } from './components/page-header/page-header.compon
 import { EmptyStateComponent } from './components/empty-state/empty-state.component';
 import { LoadingStateComponent } from './components/loading-state/loading-state.component';
 import { DataTableComponent, DataTableColumn } from './components/data-table/data-table.component';
-import { AppShellComponent } from './layout/app-shell/app-shell.component';
-import { provideRouter } from '@angular/router';
 
 describe('Shared Presentation Components', () => {
   it('PageHeaderComponent should render title and subtitle', async () => {
@@ -80,15 +78,5 @@ describe('Shared Presentation Components', () => {
 
     expect(screen.getByText('V-003')).toBeTruthy();
     expect(screen.getByText('S/ 300')).toBeTruthy();
-  });
-
-  it('AppShellComponent should toggle sidebar on button click', async () => {
-    await render(AppShellComponent, {
-      providers: [provideRouter([])],
-    });
-
-    expect(screen.getByText('Crédito Proximidad')).toBeTruthy();
-    const toggleBtn = screen.getByLabelText('Alternar menú lateral');
-    await fireEvent.click(toggleBtn);
   });
 });

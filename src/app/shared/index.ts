@@ -17,19 +17,14 @@ export * from './application/use-case';
 export * from './application/app-error';
 
 // Infrastructure Base & UPC Contracts
-export * from './infrastructure/base-response';
+export * from './infrastructure/base-resource';
 export * from './infrastructure/base-assembler';
-export * from './infrastructure/base-api-endpoint';
 export * from './infrastructure/base-api';
 export * from './infrastructure/error-handling-enabled-base-type';
 export * from './infrastructure/http/api-base-url.token';
-export * from './infrastructure/http/auth.interceptor';
 export * from './infrastructure/http/error.interceptor';
-export * from './infrastructure/storage/token-storage.port';
-export * from './infrastructure/storage/session-token-storage';
 
 // Presentation Reusable Components, Pipes & Layout
-export * from './presentation/layout/app-shell/app-shell.component';
 export * from './presentation/views/layout/layout';
 export * from './presentation/components/sidebar/sidebar';
 export * from './presentation/components/toolbar/toolbar';

@@ -1,19 +1,41 @@
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/angular';
-import { provideHttpClient } from '@angular/common/http';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { server } from '@mocks/server';
-import { provideFinancing } from '../infrastructure/financing.providers';
+import { of } from 'rxjs';
 import { SimulatorComponent } from './pages/simulator/simulator.component';
 import { ScheduleTableComponent } from './components/schedule-table/schedule-table.component';
 import { Installment } from '../domain/model/installment.entity';
-import { Money, API_BASE_URL } from '@shared/index';
+import { Money } from '@shared/index';
+import { FINANCING_REPOSITORY } from '../domain/repositories/financing.repository';
+import { FinancingAssembler } from '../infrastructure/mappers/financing.assembler';
+import { SimulateScheduleResponseDto } from '../infrastructure/dto/simulate-schedule-response.dto';
+
+const SIMULATED_DTO: SimulateScheduleResponseDto = {
+  initial_capital: '1500.00',
+  capitalized_capital: '1515.07',
+  grace_days: 15,
+  total_installments: 3,
+  tea: '0.2711545',
+  ted: '0.0006667',
+  tep_30: '0.0201993',
+  regular_installment: '525.52',
+  total_interest: '76.69',
+  total_payment: '1576.69',
+  installments: [
+    {
+      id: 1,
+      installment_number: 1,
+      due_date: '2026-02-15',
+      payment_amount: '525.52',
+      principal_amount: '494.92',
+      interest_amount: '30.60',
+      balance_amount: '1020.15',
+      is_grace_period: false,
+    },
+  ],
+};
 
 describe('Financing Presentation Components', () => {
-  beforeAll(() => server.listen({ onUnhandledFrame: 'bypass' }));
-  afterEach(() => server.resetHandlers());
-  afterAll(() => server.close());
-
   it('ScheduleTableComponent should render installment columns and mobile cards', async () => {
     const installments: Installment[] = [
       new Installment({
@@ -48,12 +70,14 @@ describe('Financing Presentation Components', () => {
   });
 
   it('SimulatorComponent should render simulator page and allow submitting simulation', async () => {
+    const schedule = new FinancingAssembler().toScheduleFromResponse(SIMULATED_DTO);
     const { fixture } = await render(SimulatorComponent, {
       providers: [
-        provideHttpClient(),
-        provideFinancing(),
         provideNoopAnimations(),
-        { provide: API_BASE_URL, useValue: 'http://localhost/api/v1' },
+        {
+          provide: FINANCING_REPOSITORY,
+          useValue: { simulateSchedule: () => of(schedule) },
+        },
       ],
     });
 
@@ -63,8 +87,7 @@ describe('Financing Presentation Components', () => {
     const submitBtn = screen.getByText('Simular Cronograma');
     await fireEvent.click(submitBtn);
 
-    // Allow promise and signal update
-    await new Promise((r) => setTimeout(r, 100));
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(screen.getAllByText('S/ 1,515.07').length).toBeGreaterThanOrEqual(1);

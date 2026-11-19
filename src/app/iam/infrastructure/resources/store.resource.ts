@@ -1,13 +1,11 @@
-import {
-  BaseResource,
-  BaseResponse,
-} from '@shared/infrastructure/base-response';
+import { BaseResource } from '@shared';
 
 /**
- * HTTP representation of a persisted store.
+ * Raw `stores` record as returned by JSON Server (`db.json`).
  *
- * `db/db.json` stores stores with an `id` primary key (the conceptual ER
- * diagram calls it `store_id`, but the actual JSON payload does not).
+ * Property names mirror the HTTP payload (`snake_case`); the Domain names are
+ * applied by `StoreAssembler`. The primary key is `id` in `db.json`, even though
+ * the ER diagram labels it `store_id`.
  */
 export interface StoreResource extends BaseResource {
   readonly business_name: string;
@@ -15,14 +13,4 @@ export interface StoreResource extends BaseResource {
   readonly address: string;
   readonly created_at: string;
   readonly status: string;
-}
-
-/**
- * `json-server` returns a bare array for collection endpoints. This interface
- * keeps compatibility with `BaseApiEndpoint`'s `BaseResponse` constraint while
- * describing the actual array payload and an optional wrapped response.
- */
-export interface StoreCollectionResponse extends BaseResponse<StoreResource[]> {
-  readonly length?: number;
-  readonly [index: number]: StoreResource | undefined;
 }

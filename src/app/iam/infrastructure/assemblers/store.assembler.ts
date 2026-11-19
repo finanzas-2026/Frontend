@@ -1,32 +1,30 @@
-import { Service } from '@angular/core';
-import { BaseAssembler } from '@shared/infrastructure/base-assembler';
-import { StoreStatus, isStoreStatus } from '../../domain/enums/store-status.enum';
-import { IamDomainError } from '../../domain/exceptions/iam-domain-error';
+import { Injectable } from '@angular/core';
+import { BaseAssembler } from '@shared';
+import { StoreStatus, StoreStatuses } from '../../domain/enums/store-status.enum';
 import { Store } from '../../domain/model/store.entity';
-import {
-  StoreCollectionResponse,
-  StoreResource,
-} from '../resources/store.resource';
+import { StoreResource } from '../resources/store.resource';
 
-@Service()
-export class StoreAssembler implements BaseAssembler<
-  Store,
-  StoreResource,
-  StoreCollectionResponse
-> {
+const KNOWN_STATUSES = Object.values(StoreStatuses);
+
+/**
+ * Maps `stores` HTTP payloads to the Domain `Store` and back.
+ *
+ * It only transforms representations: no HTTP, no state and no defaults that
+ * could hide inconsistent data.
+ */
+@Injectable({ providedIn: 'root' })
+export class StoreAssembler
+  implements BaseAssembler<Store, StoreResource, StoreResource[]>
+{
   toEntityFromResource(resource: StoreResource): Store {
-    if (!resource) {
-      throw IamDomainError.requiredField('store');
-    }
-
-    return new Store({
+    return {
       id: resource.id,
       businessName: resource.business_name,
       taxId: resource.tax_id,
       address: resource.address,
-      createdAt: new Date(resource.created_at),
-      status: parseStatus(resource.status),
-    });
+      createdAt: resource.created_at,
+      status: toStoreStatus(resource.status),
+    };
   }
 
   toResourceFromEntity(entity: Store): StoreResource {
@@ -35,34 +33,19 @@ export class StoreAssembler implements BaseAssembler<
       business_name: entity.businessName,
       tax_id: entity.taxId,
       address: entity.address,
-      created_at: entity.createdAt.toISOString(),
+      created_at: entity.createdAt,
       status: entity.status,
     };
   }
 
-  toEntitiesFromResponse(response: StoreCollectionResponse): Store[] {
-    return extractResources(response).map((resource) => this.toEntityFromResource(resource));
+  toEntitiesFromResponse(response: StoreResource[]): Store[] {
+    return response.map((resource) => this.toEntityFromResource(resource));
   }
 }
 
-function extractResources(response: StoreCollectionResponse): StoreResource[] {
-  if (response.data) {
-    return response.data;
+function toStoreStatus(value: string): StoreStatus {
+  if (!KNOWN_STATUSES.includes(value as StoreStatus)) {
+    throw new Error(`Estado de tienda desconocido: "${value}".`);
   }
-
-  const resources: StoreResource[] = [];
-  for (let index = 0; index < (response.length ?? 0); index += 1) {
-    const resource = response[index];
-    if (resource) {
-      resources.push(resource);
-    }
-  }
-  return resources;
-}
-
-function parseStatus(value: string): StoreStatus {
-  if (!isStoreStatus(value)) {
-    throw IamDomainError.invalidStoreStatus(value);
-  }
-  return value;
+  return value as StoreStatus;
 }

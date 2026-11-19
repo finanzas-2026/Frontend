@@ -1,4 +1,7 @@
 import { Routes } from '@angular/router';
+import { UserRoles } from './iam/domain/constants/user-roles.constant';
+import { authGuard } from './iam/presentation/guards/auth.guard';
+import { roleGuard } from './iam/presentation/guards/role.guard';
 import { Layout } from './shared/presentation/views/layout/layout';
 
 export const routes: Routes = [
@@ -14,6 +17,14 @@ export const routes: Routes = [
   {
     path: '',
     component: Layout,
+    canActivate: [
+      authGuard,
+      roleGuard(
+        UserRoles.SUPER_ADMIN,
+        UserRoles.STORE_ADMIN,
+        UserRoles.CUSTOMER
+      ),
+    ],
     children: [
       {
         path: 'financing',

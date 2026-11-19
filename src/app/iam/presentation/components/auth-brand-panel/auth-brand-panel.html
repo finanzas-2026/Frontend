@@ -1,0 +1,17 @@
+<aside class="brand-panel" aria-hidden="true">
+  <div class="brand-mark">CP</div>
+  <p class="brand-eyebrow">{{ eyebrow() }}</p>
+  <h2>{{ title() }}</h2>
+  <p class="brand-copy">{{ description() }}</p>
+
+  @if (features().length > 0) {
+    <ul class="brand-features">
+      @for (feature of features(); track feature) {
+        <li>{{ feature }}</li>
+      }
+    </ul>
+  }
+
+  <span class="decorative-line decorative-line--one"></span>
+  <span class="decorative-line decorative-line--two"></span>
+</aside>

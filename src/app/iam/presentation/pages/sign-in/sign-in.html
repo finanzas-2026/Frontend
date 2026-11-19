@@ -1,0 +1,115 @@
+<section class="sign-in-page" aria-labelledby="sign-in-title">
+  <app-auth-brand-panel
+    eyebrow="Gestión multitienda"
+    title="Crédito Proximidad"
+    description="Administra ventas, financiamiento y cobranza de cada establecimiento desde un espacio de trabajo aislado y seguro."
+    [features]="brandFeatures"
+  />
+
+  <div class="form-panel">
+    <mat-card class="sign-in-card" appearance="outlined">
+      <mat-card-content>
+        <header class="form-header">
+          <p class="form-eyebrow">Bienvenido</p>
+          <h1 id="sign-in-title">Iniciar sesión</h1>
+          <p class="form-subtitle">
+            Ingresa con tu correo o nombre de usuario para acceder al sistema.
+          </p>
+        </header>
+
+        <form
+          [formGroup]="form"
+          (ngSubmit)="onSubmit()"
+          novalidate
+          [attr.aria-busy]="authStore.isLoading()"
+        >
+          <mat-form-field appearance="outline" class="field-full">
+            <mat-label>Correo o nombre de usuario</mat-label>
+            <input
+              matInput
+              formControlName="identifier"
+              autocomplete="username"
+              autocapitalize="none"
+              spellcheck="false"
+              aria-required="true"
+            />
+            <mat-icon matPrefix aria-hidden="true">person</mat-icon>
+            @if (
+              form.controls.identifier.touched &&
+              form.controls.identifier.hasError('required')
+            ) {
+              <mat-error>Ingresa tu correo o nombre de usuario.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="field-full">
+            <mat-label>Contraseña</mat-label>
+            <input
+              matInput
+              formControlName="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              autocomplete="current-password"
+              aria-required="true"
+            />
+            <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              class="password-toggle"
+              [attr.aria-label]="
+                showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+              "
+              [attr.aria-pressed]="showPassword()"
+              (click)="togglePasswordVisibility()"
+            >
+              <mat-icon aria-hidden="true">
+                {{ showPassword() ? 'visibility_off' : 'visibility' }}
+              </mat-icon>
+            </button>
+            @if (
+              form.controls.password.touched &&
+              form.controls.password.hasError('required')
+            ) {
+              <mat-error>La contraseña es obligatoria.</mat-error>
+            }
+          </mat-form-field>
+
+          @if (authStore.error()) {
+            <div class="form-error" role="alert" aria-live="assertive">
+              <mat-icon aria-hidden="true">error_outline</mat-icon>
+              <span>{{ authStore.error() }}</span>
+            </div>
+          }
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            class="submit-button"
+            [disabled]="authStore.isLoading()"
+          >
+            @if (authStore.isLoading()) {
+              <mat-spinner diameter="20" aria-label="Autenticando" />
+              <span>Autenticando...</span>
+            } @else {
+              <span class="submit-content">
+                <span>Iniciar sesión</span>
+                <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+              </span>
+            }
+          </button>
+        </form>
+
+        <p class="form-footer">
+          ¿Aún no tienes cuenta?
+          <a routerLink="/iam/sign-up">Registra tu establecimiento</a>
+        </p>
+
+        <p class="form-note">
+          El acceso está reservado para usuarios registrados y activos.
+        </p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</section>
