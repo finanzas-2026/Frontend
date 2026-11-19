@@ -30,6 +30,8 @@ export class AnalyticsHttpRepository extends BaseApi implements AnalyticsReposit
   }
 
   getDashboardKpis(): Observable<DashboardKpis> {
+    // TODO(BACKEND-INTEGRATION): Implementar las operaciones de analítica
+    // cuando existan los endpoints correspondientes en el backend real.
     return this.http.get<DashboardKpisDto>(`${this.basePath}/kpis`).pipe(
       map((response) => {
         const parseResult = dashboardKpisSchema.safeParse(response);

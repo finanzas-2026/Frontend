@@ -235,6 +235,9 @@ export class CartStore {
     const rateResult = Rate.fromFraction(this.rateValue());
     return {
       customerId: cust.id,
+      // TODO(MULTITENANCY): Reemplazar el storeId fijo por el
+      // establecimiento asociado a la sesión autenticada.
+      // Validar la pertenencia del usuario cuando exista backend real.
       storeId: 1,
       paymentMode: mode,
       installmentsCount: isCuotas ? this.installmentsCount() : undefined,
