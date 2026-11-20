@@ -1,0 +1,87 @@
+<article class="product-card" [class.is-inactive]="!isActive()">
+  <div class="product-card__media">
+    @if (showImage()) {
+      <img
+        class="product-card__image"
+        [src]="product().imageUrl"
+        [alt]="'Imagen de ' + product().name"
+        (error)="onImageError()"
+      />
+    } @else {
+      <div class="product-card__placeholder" aria-hidden="true">
+        <mat-icon>inventory_2</mat-icon>
+        <span>Sin imagen</span>
+      </div>
+    }
+
+    <span class="status-badge" [class.status-badge--inactive]="!isActive()">
+      {{ isActive() ? 'Activo' : 'Inactivo' }}
+    </span>
+  </div>
+
+  <div class="product-card__body">
+    <div class="product-card__heading">
+      <div>
+        <p class="product-card__brand">{{ brandLabel() }}</p>
+        <h2 class="product-card__name">{{ product().name }}</h2>
+      </div>
+      <span [class]="'availability-badge ' + availabilityClass()">
+        {{ availability() }}
+      </span>
+    </div>
+
+    <p class="product-card__description">
+      {{ product().description || 'Sin descripción registrada.' }}
+    </p>
+
+    <dl class="product-card__prices">
+      <div>
+        <dt>Contado</dt>
+        <dd>{{ product().cashPrice | solCurrency }}</dd>
+      </div>
+      <div>
+        <dt>Lista a crédito</dt>
+        <dd>{{ product().creditListPrice | solCurrency }}</dd>
+      </div>
+    </dl>
+
+    <div class="product-card__meta">
+      <span><strong>Unidad:</strong> {{ unitLabel() }}</span>
+      <span>
+        <strong>Stock:</strong>
+        {{ product().currentStock }} / mínimo {{ product().minStock }}
+      </span>
+      <span>
+        <strong>Pagos mensuales:</strong>
+        {{ product().allowsMonthlyPayments ? 'Sí' : 'No' }}
+      </span>
+    </div>
+
+    @if (showAdminActions()) {
+      <div class="product-card__actions">
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="onEdit()"
+          [attr.aria-label]="'Editar ' + product().name"
+        >
+          <mat-icon aria-hidden="true">edit</mat-icon>
+          Editar
+        </button>
+
+        @if (isActive()) {
+          <button
+            mat-button
+            type="button"
+            class="deactivate-button"
+            (click)="onDeactivate()"
+            [attr.aria-label]="'Desactivar ' + product().name"
+          >
+            <mat-icon aria-hidden="true">block</mat-icon>
+            Desactivar
+          </button>
+        }
+      </div>
+    }
+  </div>
+</article>

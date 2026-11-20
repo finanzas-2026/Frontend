@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { UserRoles } from './iam/domain/constants/user-roles.constant';
 import { authGuard } from './iam/presentation/guards/auth.guard';
 import { roleGuard } from './iam/presentation/guards/role.guard';
-import { Layout } from './shared/presentation/views/layout/layout';
+import { Layout } from '@shared';
 
 export const routes: Routes = [
   {
@@ -26,6 +26,14 @@ export const routes: Routes = [
       ),
     ],
     children: [
+      {
+        path: 'catalog',
+        canActivate: [roleGuard(UserRoles.STORE_ADMIN, UserRoles.SUPER_ADMIN)],
+        loadChildren: () =>
+          import('./catalog/presentation/catalog.routes').then(
+            (m) => m.CATALOG_ROUTES
+          ),
+      },
       {
         path: 'financing',
         loadChildren: () => import('./financing/presentation/financing.routes').then((m) => m.financingRoutes),

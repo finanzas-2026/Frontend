@@ -1,0 +1,298 @@
+<app-page-header [title]="pageTitle()" [subtitle]="pageSubtitle()">
+  <a mat-stroked-button routerLink="/catalog/products">
+    <mat-icon aria-hidden="true">arrow_back</mat-icon>
+    Volver al catálogo
+  </a>
+</app-page-header>
+
+@if (!hasStore()) {
+  <app-empty-state
+    icon="storefront"
+    title="Sin establecimiento asociado"
+    message="La sesión actual no tiene una tienda asignada. No es posible registrar productos sin un establecimiento propietario."
+  />
+} @else if (loadError()) {
+  <mat-card class="state-card" appearance="outlined">
+    <mat-card-content>
+      <mat-icon class="state-icon" aria-hidden="true">error_outline</mat-icon>
+      <h2>No se pudo cargar el producto</h2>
+      <p>{{ loadError() }}</p>
+      <a mat-flat-button color="primary" routerLink="/catalog/products">
+        Volver al catálogo
+      </a>
+    </mat-card-content>
+  </mat-card>
+} @else if (isEditMode() && store.isLoading() && !loadedProduct()) {
+  <app-loading-state message="Cargando datos del producto..." />
+} @else {
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    novalidate
+    [attr.aria-busy]="store.isLoading()"
+  >
+    <mat-card class="form-card" appearance="outlined">
+      <mat-card-content>
+        <section class="form-section">
+          <div class="section-heading">
+            <h2>Información general</h2>
+            <p>Datos que se mostrarán en el catálogo del establecimiento.</p>
+          </div>
+
+          <div class="field-grid">
+            <mat-form-field appearance="outline" class="field-span-2">
+              <mat-label>Nombre del producto</mat-label>
+              <input
+                matInput
+                formControlName="name"
+                placeholder="Ej. Saco de arroz extra 50 kg"
+                aria-required="true"
+              />
+              @if (
+                form.controls.name.touched &&
+                form.controls.name.hasError('required')
+              ) {
+                <mat-error>El nombre del producto es obligatorio.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-span-2">
+              <mat-label>Descripción</mat-label>
+              <textarea
+                matInput
+                formControlName="description"
+                rows="3"
+                placeholder="Detalle comercial del producto"
+              ></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Marca</mat-label>
+              <input matInput formControlName="brand" placeholder="Ej. Costeño" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Proveedor</mat-label>
+              <input
+                matInput
+                formControlName="supplier"
+                placeholder="Ej. Distribuidora Norte SAC"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Unidad de medida</mat-label>
+              <mat-select formControlName="unitOfMeasure" aria-required="true">
+                @for (unit of units; track unit) {
+                  <mat-option [value]="unit">{{ unit }}</mat-option>
+                }
+              </mat-select>
+              @if (
+                form.controls.unitOfMeasure.touched &&
+                form.controls.unitOfMeasure.hasError('required')
+              ) {
+                <mat-error>Selecciona una unidad de medida.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-span-2">
+              <mat-label>URL de imagen</mat-label>
+              <input
+                matInput
+                formControlName="imageUrl"
+                type="url"
+                placeholder="https://..."
+              />
+              <mat-hint>
+                Si no se registra una imagen, el catálogo mostrará un
+                marcador visual.
+              </mat-hint>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading">
+            <h2>Información comercial</h2>
+            <p>Precios y modalidades de venta admitidas.</p>
+          </div>
+
+          <div class="field-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Precio al contado (S/)</mat-label>
+              <input
+                matInput
+                formControlName="cashPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                aria-required="true"
+              />
+              @if (
+                form.controls.cashPrice.touched &&
+                form.controls.cashPrice.hasError('required')
+              ) {
+                <mat-error>El precio al contado es obligatorio.</mat-error>
+              } @else if (
+                form.controls.cashPrice.touched &&
+                form.controls.cashPrice.hasError('min')
+              ) {
+                <mat-error>El precio no puede ser negativo.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Precio de lista a crédito (S/)</mat-label>
+              <input
+                matInput
+                formControlName="creditListPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                aria-required="true"
+              />
+              @if (
+                form.controls.creditListPrice.touched &&
+                form.controls.creditListPrice.hasError('required')
+              ) {
+                <mat-error>El precio a crédito es obligatorio.</mat-error>
+              } @else if (
+                form.controls.creditListPrice.touched &&
+                form.controls.creditListPrice.hasError('min')
+              ) {
+                <mat-error>El precio no puede ser negativo.</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="toggle-field field-span-2">
+              <mat-slide-toggle formControlName="allowsMonthlyPayments">
+                Permite pagos mensuales
+              </mat-slide-toggle>
+              <p class="field-hint">
+                Habilita esta opción si el producto puede venderse a crédito
+                con cuotas mensuales.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading">
+            <h2>Inventario</h2>
+            <p>Las existencias se controlan en cantidades enteras.</p>
+          </div>
+
+          <div class="field-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Stock actual</mat-label>
+              <input
+                matInput
+                formControlName="currentStock"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                aria-required="true"
+              />
+              @if (
+                form.controls.currentStock.touched &&
+                form.controls.currentStock.hasError('required')
+              ) {
+                <mat-error>El stock actual es obligatorio.</mat-error>
+              } @else if (
+                form.controls.currentStock.touched &&
+                (form.controls.currentStock.hasError('min') ||
+                  form.controls.currentStock.hasError('integer'))
+              ) {
+                <mat-error>
+                  El stock actual debe ser un entero no negativo.
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Stock mínimo</mat-label>
+              <input
+                matInput
+                formControlName="minStock"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                aria-required="true"
+              />
+              @if (
+                form.controls.minStock.touched &&
+                form.controls.minStock.hasError('required')
+              ) {
+                <mat-error>El stock mínimo es obligatorio.</mat-error>
+              } @else if (
+                form.controls.minStock.touched &&
+                (form.controls.minStock.hasError('min') ||
+                  form.controls.minStock.hasError('integer'))
+              ) {
+                <mat-error>
+                  El stock mínimo debe ser un entero no negativo.
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <p class="section-note">
+            El producto se marca con stock crítico cuando el stock actual es
+            menor o igual al stock mínimo.
+          </p>
+        </section>
+
+        @if (isEditMode()) {
+          <section class="form-section">
+            <div class="section-heading">
+              <h2>Estado del producto</h2>
+              <p>
+                Los productos inactivos se conservan para consultas
+                administrativas y registros históricos.
+              </p>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Estado</mat-label>
+              <mat-select formControlName="status" aria-required="true">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </section>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    @if (submitError()) {
+      <div class="page-alert" role="alert">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ submitError() }}</span>
+      </div>
+    }
+
+    <div class="form-actions">
+      <a mat-stroked-button routerLink="/catalog/products">Cancelar</a>
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="store.isLoading()"
+      >
+        @if (store.isLoading()) {
+          <mat-spinner diameter="20" aria-label="Guardando producto" />
+          <span>Guardando...</span>
+        } @else {
+          <span>{{ submitLabel() }}</span>
+        }
+      </button>
+    </div>
+  </form>
+}
