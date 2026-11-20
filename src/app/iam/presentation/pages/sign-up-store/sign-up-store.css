@@ -2,67 +2,11 @@
   display: block;
 }
 
-.sign-up-page {
-  --iam-primary: #0369a1;
-  --iam-primary-dark: #075985;
-  --iam-text: #1e293b;
-  --iam-muted: #475569;
-  --iam-border: #cbd5e1;
-  --iam-background: #f1f5f9;
-  --iam-error: #b91c1c;
-
-  display: grid;
-  grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr);
-  min-height: 100dvh;
-  background: var(--iam-background);
-}
-
-.form-panel {
-  display: grid;
-  place-items: center;
-  padding: 2rem;
-}
-
 .wizard-card {
-  width: 100%;
   max-width: 48rem;
-  border-color: var(--iam-border);
-  border-radius: 1rem;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
 }
 
-.wizard-card mat-card-content {
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-}
-
-.form-header {
-  margin-bottom: 1.5rem;
-}
-
-.form-eyebrow {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--iam-primary);
-}
-
-.form-header h1 {
-  margin: 0.4rem 0 0.5rem;
-  color: var(--iam-text);
-  font-size: 1.75rem;
-  line-height: 1.2;
-}
-
-.form-subtitle,
-.form-footer {
-  margin: 0;
-  color: var(--iam-muted);
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
+/* Progress indicator */
 .step-indicator {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -77,32 +21,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   text-align: center;
-  color: #94a3b8;
+  color: var(--iam-muted);
 }
 
 .step:not(:last-child)::after {
   content: '';
   position: absolute;
-  top: 1rem;
-  left: calc(50% + 1.25rem);
-  width: calc(100% - 2.5rem);
+  top: 1.05rem;
+  left: calc(50% + 1.4rem);
+  width: calc(100% - 2.8rem);
   height: 2px;
+  border-radius: 999px;
   background: #e2e8f0;
 }
 
-.step.is-complete::after {
+.step.is-complete:not(:last-child)::after {
   background: var(--iam-primary);
 }
 
 .step-number {
   position: relative;
   z-index: 1;
-  width: 2rem;
-  height: 2rem;
+  width: 2.1rem;
+  height: 2.1rem;
   display: grid;
   place-items: center;
+  border: 2px solid transparent;
   border-radius: 50%;
   background: #e2e8f0;
   color: var(--iam-muted);
@@ -110,21 +56,44 @@
   font-weight: 700;
 }
 
-.step.is-active .step-number,
+.step-number mat-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  font-size: 1.1rem;
+}
+
+.step.is-active .step-number {
+  border-color: var(--iam-primary);
+  background: #ffffff;
+  color: var(--iam-primary);
+  box-shadow: 0 0 0 4px rgba(3, 105, 161, 0.12);
+}
+
 .step.is-complete .step-number {
   background: var(--iam-primary);
   color: #ffffff;
 }
 
+.step.is-active .step-label,
+.step.is-complete .step-label {
+  color: var(--iam-text);
+  font-weight: 600;
+}
+
 .step-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   line-height: 1.3;
+}
+
+/* Fields */
+.step-content {
+  min-height: 18rem;
 }
 
 .field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 1rem;
+  gap: 0.35rem 1rem;
 }
 
 .field-grid mat-form-field {
@@ -135,6 +104,7 @@
   grid-column: 1 / -1;
 }
 
+/* Confirmation summary */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -157,80 +127,60 @@
 .summary-card dl {
   margin: 0;
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.4rem 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.1rem;
 }
 
 .summary-card dt {
   color: var(--iam-muted);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .summary-card dd {
-  margin: 0;
+  margin: 0 0 0.55rem;
   color: var(--iam-text);
   font-size: 0.85rem;
   font-weight: 500;
   overflow-wrap: anywhere;
 }
 
+.summary-card dd:last-child {
+  margin-bottom: 0;
+}
+
+.summary-note {
+  margin: 1rem 0 0;
+  color: var(--iam-muted);
+  font-size: 0.8rem;
+}
+
 .role-badge {
   display: inline-block;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: #e0f2fe;
-  color: #075985;
+  background: var(--iam-primary-soft);
+  color: var(--iam-primary-dark);
   font-size: 0.75rem;
   font-weight: 700;
 }
 
-.form-error {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.65rem 0.75rem;
-  margin: 1rem 0 0;
-  border: 1px solid #fecaca;
-  border-radius: 0.5rem;
-  background: #fef2f2;
-  color: var(--iam-error);
-  font-size: 0.85rem;
-  line-height: 1.45;
-}
-
-.form-error mat-icon {
-  flex: 0 0 auto;
-  font-size: 1.15rem;
-  width: 1.15rem;
-  height: 1.15rem;
-}
-
+/* Navigation */
 .wizard-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+  flex-wrap: wrap;
   margin-top: 1.5rem;
 }
 
-.primary-button {
-  min-height: 2.9rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: var(--iam-primary);
-  color: #ffffff;
-  font-weight: 600;
+.wizard-actions .primary-button {
+  min-width: 10rem;
 }
 
-.primary-button:hover:not(:disabled) {
-  background: var(--iam-primary-dark);
-}
-
-.primary-button mat-spinner {
-  --mdc-circular-progress-active-indicator-color: #ffffff;
-}
-
+/* Success state */
 .success-panel {
   padding: 1.5rem 0;
   text-align: center;
@@ -251,39 +201,15 @@
 
 .success-panel p {
   max-width: 28rem;
-  margin: 0 auto;
+  margin: 0 auto 1.5rem;
   color: var(--iam-muted);
   font-size: 0.95rem;
   line-height: 1.6;
 }
 
-.form-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-}
-
-.form-footer a {
-  color: var(--iam-primary);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-button:focus-visible,
-a:focus-visible,
-input:focus-visible {
-  outline: 3px solid #7dd3fc;
-  outline-offset: 2px;
-}
-
 @media (max-width: 900px) {
-  .sign-up-page {
-    grid-template-columns: 1fr;
-    min-height: 100dvh;
-  }
-
-  .form-panel {
-    padding: 1.25rem;
-    align-items: start;
+  .step-content {
+    min-height: 0;
   }
 
   .field-grid,
@@ -293,5 +219,27 @@ input:focus-visible {
 
   .field-span-2 {
     grid-column: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .wizard-actions {
+    flex-direction: column-reverse;
+  }
+
+  .wizard-actions .primary-button {
+    min-width: 0;
+  }
+
+  .step-indicator {
+    gap: 0.25rem;
+  }
+
+  .step-label {
+    font-size: 0.68rem;
+  }
+
+  .summary-card {
+    padding: 0.9rem 1rem;
   }
 }

@@ -1,4 +1,4 @@
-<section class="sign-in-page" aria-labelledby="sign-in-title">
+<section class="auth-page sign-in-page" aria-labelledby="sign-in-title">
   <app-auth-brand-panel
     eyebrow="Gestión multitienda"
     title="Crédito Proximidad"
@@ -7,7 +7,7 @@
   />
 
   <div class="form-panel">
-    <mat-card class="sign-in-card" appearance="outlined">
+    <mat-card class="auth-card sign-in-card" appearance="outlined">
       <mat-card-content>
         <header class="form-header">
           <p class="form-eyebrow">Bienvenido</p>
@@ -23,17 +23,18 @@
           novalidate
           [attr.aria-busy]="authStore.isLoading()"
         >
-          <mat-form-field appearance="outline" class="field-full">
+          <mat-form-field appearance="outline" floatLabel="always">
             <mat-label>Correo o nombre de usuario</mat-label>
+            <mat-icon matPrefix aria-hidden="true">person</mat-icon>
             <input
               matInput
               formControlName="identifier"
+              placeholder="tu@correo.com o usuario"
               autocomplete="username"
               autocapitalize="none"
               spellcheck="false"
               aria-required="true"
             />
-            <mat-icon matPrefix aria-hidden="true">person</mat-icon>
             @if (
               form.controls.identifier.touched &&
               form.controls.identifier.hasError('required')
@@ -42,16 +43,17 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="field-full">
+          <mat-form-field appearance="outline" floatLabel="always">
             <mat-label>Contraseña</mat-label>
+            <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
             <input
               matInput
               formControlName="password"
+              placeholder="Ingresa tu contraseña"
               [type]="showPassword() ? 'text' : 'password'"
               autocomplete="current-password"
               aria-required="true"
             />
-            <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
             <button
               mat-icon-button
               matSuffix
@@ -86,7 +88,7 @@
             mat-flat-button
             color="primary"
             type="submit"
-            class="submit-button"
+            class="submit-button primary-button"
             [disabled]="authStore.isLoading()"
           >
             @if (authStore.isLoading()) {

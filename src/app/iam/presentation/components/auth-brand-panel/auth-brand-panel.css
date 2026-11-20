@@ -1,10 +1,14 @@
 :host {
   display: block;
+  height: 100%;
+  min-height: 100%;
 }
 
 .brand-panel {
   position: relative;
   overflow: hidden;
+  min-height: 100%;
+  height: 100%;
   padding: 3rem clamp(2rem, 5vw, 5rem);
   display: flex;
   flex-direction: column;
@@ -91,13 +95,26 @@
   bottom: -3rem;
 }
 
+/* Tablet: the panel becomes a compact header above the form. */
 @media (max-width: 900px) {
+  :host {
+    height: auto;
+    min-height: 0;
+  }
+
   .brand-panel {
-    padding: 2rem 1.5rem 2.5rem;
+    min-height: 0;
+    height: auto;
+    padding: 2rem 1.5rem;
+    justify-content: flex-start;
+  }
+
+  .brand-mark {
+    margin-bottom: 1rem;
   }
 
   .brand-panel h2 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 
   .brand-features {
@@ -108,10 +125,33 @@
     width: 18rem;
     height: 18rem;
     right: -7rem;
-    bottom: -7rem;
+    bottom: -9rem;
   }
 
   .decorative-line--two {
     display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .brand-panel {
+    padding: 1.25rem 1.25rem 1.5rem;
+  }
+
+  .brand-mark {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .brand-panel h2 {
+    margin: 0.35rem 0 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  .brand-copy {
+    font-size: 0.85rem;
+    line-height: 1.5;
   }
 }

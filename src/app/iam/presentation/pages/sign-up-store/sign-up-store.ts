@@ -9,6 +9,7 @@ import {
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -20,6 +21,7 @@ import {
 } from '../../../application/stores/auth.store';
 import { UserRoles } from '../../../domain/constants/user-roles.constant';
 import { AuthBrandPanel } from '../../components/auth-brand-panel/auth-brand-panel';
+import { TouchedErrorStateMatcher } from '../../utils/touched-error-state-matcher';
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -37,8 +39,11 @@ const MIN_PASSWORD_LENGTH = 6;
     MatProgressSpinnerModule,
     AuthBrandPanel,
   ],
+  providers: [
+    { provide: ErrorStateMatcher, useClass: TouchedErrorStateMatcher },
+  ],
   templateUrl: './sign-up-store.html',
-  styleUrl: './sign-up-store.css',
+  styleUrls: ['./sign-up-store.css', '../../styles/auth-page.css'],
 })
 export class SignUpStorePage implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

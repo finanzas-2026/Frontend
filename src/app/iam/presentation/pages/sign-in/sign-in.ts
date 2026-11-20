@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -10,6 +11,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthStore } from '../../../application/stores/auth.store';
 import { UserRoles } from '../../../domain/constants/user-roles.constant';
 import { AuthBrandPanel } from '../../components/auth-brand-panel/auth-brand-panel';
+import { TouchedErrorStateMatcher } from '../../utils/touched-error-state-matcher';
 
 @Component({
   selector: 'app-sign-in',
@@ -25,8 +27,11 @@ import { AuthBrandPanel } from '../../components/auth-brand-panel/auth-brand-pan
     MatProgressSpinnerModule,
     AuthBrandPanel,
   ],
+  providers: [
+    { provide: ErrorStateMatcher, useClass: TouchedErrorStateMatcher },
+  ],
   templateUrl: './sign-in.html',
-  styleUrl: './sign-in.css',
+  styleUrls: ['./sign-in.css', '../../styles/auth-page.css'],
 })
 export class SignInPage implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
