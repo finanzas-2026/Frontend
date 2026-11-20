@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { inject, signal, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { User } from '../../domain/model/user.entity';
 import { UserApi } from '../../infrastructure/api/user.api';
@@ -9,7 +9,7 @@ import { UserApi } from '../../infrastructure/api/user.api';
  * It never handles the session, persistence or navigation, and it does not
  * persist users (their `passwordHash` must not reach browser storage).
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class UserStore {
   private readonly userApi = inject(UserApi);
 
@@ -78,7 +78,7 @@ export class UserStore {
       const updated = await firstValueFrom(this.userApi.update(user));
       this.usersState.update((users) => upsert(users, updated));
       this.selectedUserState.update((selected) =>
-        selected?.id === updated.id ? updated : selected
+        selected?.id === updated.id ? updated : selected,
       );
       return updated;
     } catch (error) {
@@ -96,9 +96,7 @@ export class UserStore {
     try {
       await firstValueFrom(this.userApi.delete(id));
       this.usersState.update((users) => users.filter((user) => user.id !== id));
-      this.selectedUserState.update((selected) =>
-        selected?.id === id ? null : selected
-      );
+      this.selectedUserState.update((selected) => (selected?.id === id ? null : selected));
     } catch (error) {
       this.errorState.set(toErrorMessage(error));
       throw error;

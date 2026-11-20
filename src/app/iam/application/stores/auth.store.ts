@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { computed, inject, signal, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AppError } from '@shared/application/app-error';
 import { environment } from '../../../../environments/environment';
@@ -35,7 +35,7 @@ export interface StoreRegistrationCommand {
  * It is the single source of truth for the session. Authentication is a
  * development mock over JSON Server; it is not real security.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AuthStore {
   private readonly userApi = inject(UserApi);
   private readonly storeApi = inject(StoreApi);
@@ -139,7 +139,7 @@ export class AuthStore {
     const users = await firstValueFrom(
       identifier.includes('@')
         ? this.userApi.searchByEmail(identifier)
-        : this.userApi.searchByUsername(identifier)
+        : this.userApi.searchByUsername(identifier),
     );
     const user = users[0];
 
@@ -176,34 +176,22 @@ export class AuthStore {
     return store;
   }
 
-  private async ensureAccountAvailable(
-    command: StoreRegistrationCommand
-  ): Promise<void> {
+  private async ensureAccountAvailable(command: StoreRegistrationCommand): Promise<void> {
     const [byUsername, byEmail] = await Promise.all([
       firstValueFrom(this.userApi.searchByUsername(command.username.trim())),
       firstValueFrom(this.userApi.searchByEmail(command.email.trim())),
     ]);
 
     if (byUsername.length > 0) {
-      throw new AppError(
-        'USERNAME_TAKEN',
-        'El nombre de usuario ya está registrado.',
-        409
-      );
+      throw new AppError('USERNAME_TAKEN', 'El nombre de usuario ya está registrado.', 409);
     }
 
     if (byEmail.length > 0) {
-      throw new AppError(
-        'EMAIL_TAKEN',
-        'El correo electrónico ya está registrado.',
-        409
-      );
+      throw new AppError('EMAIL_TAKEN', 'El correo electrónico ya está registrado.', 409);
     }
   }
 
-  private async createStore(
-    command: StoreRegistrationCommand
-  ): Promise<Store> {
+  private async createStore(command: StoreRegistrationCommand): Promise<Store> {
     return firstValueFrom(
       this.storeApi.create({
         // TODO(IAM-PERSISTENCE): Sustituir los IDs temporales
@@ -215,13 +203,13 @@ export class AuthStore {
         address: command.address.trim(),
         createdAt: new Date().toISOString(),
         status: StoreStatuses.ACTIVE,
-      })
+      }),
     );
   }
 
   private async createStoreAdmin(
     command: StoreRegistrationCommand,
-    storeId: number
+    storeId: number,
   ): Promise<void> {
     try {
       await firstValueFrom(
@@ -237,7 +225,7 @@ export class AuthStore {
           email: command.email.trim(),
           userType: UserRoles.STORE_ADMIN,
           status: UserStatuses.ACTIVE,
-        })
+        }),
       );
     } catch (error) {
       const reverted = await this.rollbackStore(storeId);
@@ -247,7 +235,7 @@ export class AuthStore {
           ? 'No se pudo crear la cuenta administradora. El registro fue revertido.'
           : 'La tienda fue creada, pero la cuenta administradora no. Contacta al administrador.',
         500,
-        error
+        error,
       );
     }
   }
@@ -265,10 +253,7 @@ export class AuthStore {
     if (typeof window === 'undefined') {
       return;
     }
-    window.sessionStorage.setItem(
-      environment.sessionStorageKey,
-      JSON.stringify(session)
-    );
+    window.sessionStorage.setItem(environment.sessionStorageKey, JSON.stringify(session));
   }
 
   private clearPersistedSession(): void {

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
 import { BaseApi } from '@shared';
 import { environment } from '../../../../environments/environment';
@@ -13,7 +13,7 @@ import { StoreResource } from '../resources/store.resource';
  * It uses the project API base URL and endpoint configured in `environment`;
  * no host or route is hardcoded here.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class StoreApi extends BaseApi {
   private readonly assembler = inject(StoreAssembler);
 

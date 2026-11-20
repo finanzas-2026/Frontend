@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { inject, signal, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Store } from '../../domain/model/store.entity';
 import { StoreApi } from '../../infrastructure/api/store.api';
@@ -9,7 +9,7 @@ import { StoreApi } from '../../infrastructure/api/store.api';
  * It does not depend on `AuthStore`: the coordination is one-way, from
  * `AuthStore` to this store, so there is no circular dependency.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class TenantStore {
   private readonly storeApi = inject(StoreApi);
 
@@ -78,9 +78,7 @@ export class TenantStore {
     try {
       const updated = await firstValueFrom(this.storeApi.update(tenant));
       this.tenantsState.update((tenants) => upsert(tenants, updated));
-      this.activeTenantState.update((active) =>
-        active?.id === updated.id ? updated : active
-      );
+      this.activeTenantState.update((active) => (active?.id === updated.id ? updated : active));
       return updated;
     } catch (error) {
       this.errorState.set(toErrorMessage(error));
@@ -96,12 +94,8 @@ export class TenantStore {
 
     try {
       await firstValueFrom(this.storeApi.delete(id));
-      this.tenantsState.update((tenants) =>
-        tenants.filter((tenant) => tenant.id !== id)
-      );
-      this.activeTenantState.update((active) =>
-        active?.id === id ? null : active
-      );
+      this.tenantsState.update((tenants) => tenants.filter((tenant) => tenant.id !== id));
+      this.activeTenantState.update((active) => (active?.id === id ? null : active));
     } catch (error) {
       this.errorState.set(toErrorMessage(error));
       throw error;
@@ -120,9 +114,7 @@ export class TenantStore {
 
   private syncActiveTenant(tenants: Store[]): void {
     this.activeTenantState.update((active) =>
-      active === null
-        ? null
-        : tenants.find((tenant) => tenant.id === active.id) ?? null
+      active === null ? null : (tenants.find((tenant) => tenant.id === active.id) ?? null),
     );
   }
 }
