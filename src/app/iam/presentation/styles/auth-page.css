@@ -1,0 +1,240 @@
+.auth-page {
+  --iam-primary: #0369a1;
+  --iam-primary-dark: #075985;
+  --iam-primary-soft: #e0f2fe;
+  --iam-text: #0f172a;
+  --iam-muted: #475569;
+  --iam-border: #cbd5e1;
+  --iam-border-strong: #94a3b8;
+  --iam-background: #eef2f7;
+  --iam-surface: #ffffff;
+  --iam-error: #b91c1c;
+  --iam-error-soft: #fef2f2;
+  --iam-error-border: #fecaca;
+  --iam-radius: 1rem;
+
+  /* Scope the brand blue to the IAM pages without changing the global theme. */
+  --mat-sys-primary: var(--iam-primary);
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-outline: var(--iam-border-strong);
+  --mat-sys-outline-variant: var(--iam-border);
+  --mat-sys-error: var(--iam-error);
+
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  min-height: 100dvh;
+  background: var(--iam-background);
+  color: var(--iam-text);
+}
+
+.form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+.auth-card {
+  width: 100%;
+  border-radius: var(--iam-radius);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.1);
+
+  --mat-card-outlined-outline-color: var(--iam-border);
+  --mat-card-outlined-container-color: var(--iam-surface);
+}
+
+.auth-card mat-card-content {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.form-header {
+  margin-bottom: 1.75rem;
+}
+
+.form-eyebrow {
+  margin: 0;
+  color: var(--iam-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.form-header h1 {
+  margin: 0.45rem 0 0.55rem;
+  color: var(--iam-text);
+  font-size: clamp(1.6rem, 2.4vw, 1.95rem);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
+.form-subtitle,
+.form-footer,
+.form-note {
+  margin: 0;
+  color: var(--iam-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.auth-page mat-form-field {
+  width: 100%;
+}
+
+.auth-page form > mat-form-field + mat-form-field {
+  margin-top: 0.35rem;
+}
+
+.auth-page .mat-mdc-form-field {
+  --mat-form-field-container-height: 3.25rem;
+  --mat-form-field-container-vertical-padding: 0.9rem;
+  --mat-form-field-outlined-container-shape: 0.65rem;
+  --mat-form-field-outlined-outline-color: var(--iam-border);
+  --mat-form-field-outlined-hover-outline-color: var(--iam-border-strong);
+  --mat-form-field-outlined-focus-outline-color: var(--iam-primary);
+  --mat-form-field-outlined-input-text-placeholder-color: #94a3b8;
+  --mat-form-field-outlined-label-text-color: var(--iam-muted);
+}
+
+.auth-page mat-error {
+  font-size: 0.78rem;
+}
+
+.password-toggle {
+  color: var(--iam-muted);
+}
+
+.password-toggle:hover {
+  color: var(--iam-primary);
+}
+
+.primary-button,
+.submit-button,
+.secondary-button {
+  min-height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 0.65rem;
+  font-weight: 600;
+}
+
+.submit-button {
+  width: 100%;
+}
+
+.primary-button {
+  padding-inline: 1.35rem;
+}
+
+.primary-button:disabled,
+.submit-button:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+  --mat-button-filled-disabled-container-color: var(--iam-primary);
+  --mat-button-filled-disabled-label-text-color: #ffffff;
+}
+
+.primary-button mat-spinner,
+.submit-button mat-spinner {
+  --mat-progress-spinner-active-indicator-color: #ffffff;
+}
+
+.submit-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.25rem 0 1rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--iam-error-border);
+  border-radius: 0.65rem;
+  background: var(--iam-error-soft);
+  color: var(--iam-error);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.form-error mat-icon {
+  flex: 0 0 auto;
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 1.15rem;
+}
+
+.form-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.form-footer a {
+  color: var(--iam-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.form-footer a:hover {
+  text-decoration: underline;
+}
+
+.form-note {
+  margin-top: 0.55rem;
+  text-align: center;
+  font-size: 0.78rem;
+}
+
+.auth-page :focus-visible {
+  outline: 3px solid #7dd3fc;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  .auth-page {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+    align-content: start;
+  }
+
+  .form-panel {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-page {
+    background: var(--iam-surface);
+  }
+
+  .form-panel {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .auth-card {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .auth-card mat-card-content {
+    padding: 0.5rem 0.25rem 1.5rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+}

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { BaseAssembler } from '@shared';
 import { UserRole, UserRoles } from '../../domain/constants/user-roles.constant';
 import { UserStatus, UserStatuses } from '../../domain/enums/user-status.enum';
@@ -14,10 +14,8 @@ const KNOWN_STATUSES = Object.values(UserStatuses);
  * It only transforms representations: no HTTP, no state and no defaults that
  * could hide inconsistent data.
  */
-@Injectable({ providedIn: 'root' })
-export class UserAssembler
-  implements BaseAssembler<User, UserResource, UserResource[]>
-{
+@Service()
+export class UserAssembler implements BaseAssembler<User, UserResource, UserResource[]> {
   toEntityFromResource(resource: UserResource): User {
     return {
       id: resource.id,

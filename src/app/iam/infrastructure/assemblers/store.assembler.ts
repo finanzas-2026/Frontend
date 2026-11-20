@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { BaseAssembler } from '@shared';
 import { StoreStatus, StoreStatuses } from '../../domain/enums/store-status.enum';
 import { Store } from '../../domain/model/store.entity';
@@ -12,10 +12,8 @@ const KNOWN_STATUSES = Object.values(StoreStatuses);
  * It only transforms representations: no HTTP, no state and no defaults that
  * could hide inconsistent data.
  */
-@Injectable({ providedIn: 'root' })
-export class StoreAssembler
-  implements BaseAssembler<Store, StoreResource, StoreResource[]>
-{
+@Service()
+export class StoreAssembler implements BaseAssembler<Store, StoreResource, StoreResource[]> {
   toEntityFromResource(resource: StoreResource): Store {
     return {
       id: resource.id,
