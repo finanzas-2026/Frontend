@@ -114,6 +114,8 @@ export class SalesHttpRepository extends BaseApi implements SalesRepository {
   }
 
   getCatalogProducts(): Observable<CatalogProduct[]> {
+    // TODO(BACKEND-INTEGRATION): Implementar esta operación
+    // cuando exista el endpoint correspondiente en el backend real.
     const listSchema = z.array(catalogProductSchema);
     return this.http.get<CatalogProductDto[]>(`${this.rootApiUrl}/catalog/products`).pipe(
       map((response) => {

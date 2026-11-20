@@ -1,0 +1,112 @@
+<app-page-header
+  title="Catálogo de productos"
+  subtitle="Administra la oferta comercial, precios y disponibilidad de tu establecimiento."
+>
+  <a mat-stroked-button routerLink="/catalog/inventory">
+    <mat-icon aria-hidden="true">inventory_2</mat-icon>
+    Monitor de inventario
+  </a>
+  <a mat-flat-button color="primary" routerLink="/catalog/products/new">
+    <mat-icon aria-hidden="true">add</mat-icon>
+    Nuevo producto
+  </a>
+</app-page-header>
+
+@if (!hasStore()) {
+  <app-empty-state
+    icon="storefront"
+    title="Sin establecimiento asociado"
+    message="La sesión actual no tiene una tienda asignada. Inicia sesión con una cuenta administradora de tienda para gestionar el catálogo."
+  />
+} @else if (store.isLoading()) {
+  <app-loading-state message="Cargando catálogo de productos..." />
+} @else {
+  @if (store.error()) {
+    <div class="page-alert" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <span>{{ store.error() }}</span>
+      <button mat-stroked-button type="button" (click)="loadProducts()">
+        Reintentar
+      </button>
+    </div>
+  }
+
+  <mat-card class="filters-card" appearance="outlined">
+    <mat-card-content>
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Buscar producto</mat-label>
+          <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+          <input
+            matInput
+            type="search"
+            [value]="searchQuery()"
+            (input)="onSearch($event)"
+            placeholder="Nombre, marca o proveedor"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Estado</mat-label>
+          <mat-select
+            [value]="statusFilter()"
+            (selectionChange)="onStatusFilterChange($event.value)"
+          >
+            <mat-option value="ALL">Todos los estados</mat-option>
+            @for (option of statusOptions; track option.value) {
+              <mat-option [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-button type="button" (click)="clearFilters()">
+          Limpiar filtros
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="results-summary" aria-live="polite">
+    <span>
+      Mostrando <strong>{{ resultCount() }}</strong> de
+      <strong>{{ totalCount() }}</strong> productos
+    </span>
+  </div>
+
+  @if (filteredProducts().length === 0) {
+    @if (totalCount() === 0) {
+      <app-empty-state
+        icon="category"
+        title="Catálogo vacío"
+        message="Todavía no hay productos registrados. Crea el primero para comenzar a publicar tu oferta comercial."
+      >
+        <a mat-flat-button color="primary" routerLink="/catalog/products/new">
+          Crear primer producto
+        </a>
+      </app-empty-state>
+    } @else {
+      <app-empty-state
+        icon="search_off"
+        title="Sin resultados"
+        message="Ningún producto coincide con los filtros seleccionados."
+      >
+        <button mat-stroked-button type="button" (click)="clearFilters()">
+          Limpiar filtros
+        </button>
+      </app-empty-state>
+    }
+  } @else {
+    <div class="product-grid">
+      @for (product of filteredProducts(); track product.id) {
+        <app-product-card
+          [product]="product"
+          [showAdminActions]="true"
+          (edit)="onEdit($event)"
+          (deactivate)="onDeactivate($event)"
+        />
+      }
+    </div>
+  }
+}

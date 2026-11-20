@@ -38,6 +38,9 @@ export class SettlementsHttpRepository
   }
 
   listSettlements(): Observable<MonthlySettlement[]> {
+    // TODO(BACKEND-INTEGRATION): Implementar las operaciones de liquidación
+    // cuando existan los endpoints correspondientes en el backend real.
+    // JSON Server expone `monthly_settlements`, no `/settlements`.
     const listSchema = z.array(settlementResponseSchema);
     return this.http.get<SettlementResponseDto[]>(this.basePath).pipe(
       map((response) => {
@@ -138,6 +141,9 @@ export class SettlementsHttpRepository
   }
 
   runCutoff(): Observable<{ message: string; generatedCount: number }> {
+    // TODO(BACKEND-INTEGRATION): Implementar las operaciones de avance de
+    // fecha y ejecución de corte cuando existan los endpoints
+    // correspondientes en el backend real. JSON Server no expone `__mock/*`.
     return this.http
       .post<{ message: string; generatedCount: number }>(
         `${this.rootApiUrl}/__mock/run-cutoff`,

@@ -1,0 +1,167 @@
+:host {
+  --catalog-primary: #0369a1;
+  --catalog-text: #0f172a;
+  --catalog-muted: #475569;
+  --catalog-border: #e2e8f0;
+  --catalog-danger: #b91c1c;
+  --catalog-danger-soft: #fef2f2;
+
+  display: block;
+}
+
+.form-card {
+  border-color: var(--catalog-border);
+  background: #ffffff;
+}
+
+.form-card mat-card-content {
+  padding: 1.5rem;
+}
+
+.form-section + .form-section {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--catalog-border);
+}
+
+.section-heading {
+  margin-bottom: 1rem;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: var(--catalog-text);
+  font-size: 1.05rem;
+}
+
+.section-heading p {
+  margin: 0.2rem 0 0;
+  color: var(--catalog-muted);
+  font-size: 0.82rem;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem 1rem;
+}
+
+.field-grid mat-form-field {
+  width: 100%;
+}
+
+.field-span-2 {
+  grid-column: 1 / -1;
+}
+
+.toggle-field {
+  padding: 0.75rem;
+  border: 1px solid var(--catalog-border);
+  border-radius: 0.65rem;
+  background: #f8fafc;
+}
+
+.field-hint {
+  margin: 0.35rem 0 0;
+  color: var(--catalog-muted);
+  font-size: 0.78rem;
+}
+
+.section-note {
+  margin: 0.5rem 0 0;
+  color: var(--catalog-muted);
+  font-size: 0.78rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.form-actions button {
+  min-width: 10rem;
+}
+
+.form-actions mat-spinner {
+  display: inline-block;
+  margin-right: 0.4rem;
+  --mat-progress-spinner-active-indicator-color: #ffffff;
+}
+
+.page-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.65rem;
+  background: var(--catalog-danger-soft);
+  color: var(--catalog-danger);
+  font-size: 0.85rem;
+}
+
+.state-card {
+  max-width: 40rem;
+  margin: 2rem auto;
+  border-color: var(--catalog-border);
+  text-align: center;
+}
+
+.state-card mat-card-content {
+  padding: 2rem;
+}
+
+.state-icon {
+  width: 3rem;
+  height: 3rem;
+  font-size: 3rem;
+  color: var(--catalog-danger);
+}
+
+.state-card h2 {
+  margin: 0.75rem 0 0.35rem;
+  color: var(--catalog-text);
+  font-size: 1.2rem;
+}
+
+.state-card p {
+  margin: 0 0 1.25rem;
+  color: var(--catalog-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 700px) {
+  :host ::ng-deep app-page-header .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  :host ::ng-deep app-page-header .header-actions > * {
+    width: 100%;
+  }
+
+  .form-card mat-card-content {
+    padding: 1rem;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-span-2 {
+    grid-column: auto;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions button,
+  .form-actions a {
+    width: 100%;
+  }
+}

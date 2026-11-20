@@ -1,5 +1,9 @@
 import { Routes } from '@angular/router';
 
+/**
+ * Public IAM routes. They render outside `Layout`, as authentication pages
+ * must not depend on an authenticated shell.
+ */
 export const IAM_ROUTES: Routes = [
   {
     path: '',
@@ -9,13 +13,13 @@ export const IAM_ROUTES: Routes = [
   {
     path: 'sign-in',
     loadComponent: () =>
-      import('./pages/sign-in/sign-in.page').then((m) => m.SignInPage),
+      import('./pages/sign-in/sign-in').then((m) => m.SignInPage),
   },
   {
-    path: 'tenants',
+    path: 'sign-up',
     loadComponent: () =>
-      import('./pages/tenant-management/tenant-management.page').then(
-        (m) => m.TenantManagementPage
+      import('./pages/sign-up-store/sign-up-store').then(
+        (m) => m.SignUpStorePage
       ),
   },
 ];

@@ -1,0 +1,185 @@
+<app-page-header
+  title="Monitor de inventario"
+  subtitle="Consulta las existencias del establecimiento y detecta productos que requieren reposición."
+>
+  <a mat-stroked-button routerLink="/catalog/products">
+    <mat-icon aria-hidden="true">arrow_back</mat-icon>
+    Volver al catálogo
+  </a>
+  <a mat-flat-button color="primary" routerLink="/catalog/products/new">
+    <mat-icon aria-hidden="true">add</mat-icon>
+    Nuevo producto
+  </a>
+</app-page-header>
+
+@if (!hasStore()) {
+  <app-empty-state
+    icon="storefront"
+    title="Sin establecimiento asociado"
+    message="La sesión actual no tiene una tienda asignada. No es posible consultar el inventario sin un establecimiento."
+  />
+} @else if (store.isLoading() && rows().length === 0) {
+  <app-loading-state message="Cargando existencias del inventario..." />
+} @else {
+  @if (store.error()) {
+    <div class="page-alert" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <span>{{ store.error() }}</span>
+      <button mat-stroked-button type="button" (click)="loadInventory()">
+        Reintentar
+      </button>
+    </div>
+  }
+
+  <div class="metrics-grid">
+    <mat-card class="metric-card" appearance="outlined">
+      <mat-card-content>
+        <div class="metric-icon metric-icon--primary" aria-hidden="true">
+          <mat-icon>inventory_2</mat-icon>
+        </div>
+        <div>
+          <p class="metric-label">Productos activos</p>
+          <p class="metric-value">{{ totalActive() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card metric-card--warning" appearance="outlined">
+      <mat-card-content>
+        <div class="metric-icon metric-icon--warning" aria-hidden="true">
+          <mat-icon>warning_amber</mat-icon>
+        </div>
+        <div>
+          <p class="metric-label">Stock crítico</p>
+          <p class="metric-value">{{ criticalCount() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card metric-card--danger" appearance="outlined">
+      <mat-card-content>
+        <div class="metric-icon metric-icon--danger" aria-hidden="true">
+          <mat-icon>remove_shopping_cart</mat-icon>
+        </div>
+        <div>
+          <p class="metric-label">Productos agotados</p>
+          <p class="metric-value">{{ outOfStockCount() }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  @if (rows().length === 0) {
+    <app-empty-state
+      icon="inventory_2"
+      title="Sin productos activos"
+      message="No hay productos activos para monitorear. Registra o reactiva un producto para verlo en el inventario."
+    >
+      <a mat-flat-button color="primary" routerLink="/catalog/products/new">
+        Registrar producto
+      </a>
+    </app-empty-state>
+  } @else {
+    <mat-card class="table-card" appearance="outlined">
+      <mat-card-content>
+        <div class="table-scroll">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th scope="col">Producto</th>
+                <th scope="col">Unidad</th>
+                <th scope="col" class="align-right">Stock actual</th>
+                <th scope="col" class="align-right">Stock mínimo</th>
+                <th scope="col">Disponibilidad</th>
+                <th scope="col" class="align-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of rows(); track product.id) {
+                <tr
+                  [class.row-low]="
+                    product.currentStock > 0 &&
+                    product.currentStock <= product.minStock
+                  "
+                  [class.row-out]="product.currentStock === 0"
+                >
+                  <td data-label="Producto">
+                    <div class="product-cell">
+                      <strong>{{ product.name }}</strong>
+                      <span>{{ product.brand || 'Sin marca' }}</span>
+                    </div>
+                  </td>
+                  <td data-label="Unidad de medida">
+                    {{ formatUnit(product.unitOfMeasure) }}
+                  </td>
+                  <td class="align-right" data-label="Stock actual">
+                    @if (editingId() === product.id) {
+                      <div class="stock-editor">
+                        <input
+                          class="stock-input"
+                          type="number"
+                          min="0"
+                          step="1"
+                          [value]="draftStock()"
+                          (input)="onDraftChange($event)"
+                          [attr.aria-label]="'Nuevo stock de ' + product.name"
+                        />
+                        <button
+                          mat-icon-button
+                          type="button"
+                          class="save-button"
+                          [disabled]="store.isLoading()"
+                          (click)="saveStock(product)"
+                          [attr.aria-label]="'Guardar stock de ' + product.name"
+                        >
+                          <mat-icon>check</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          [disabled]="store.isLoading()"
+                          (click)="cancelEdit()"
+                          aria-label="Cancelar edición de stock"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                      @if (stockError()) {
+                        <span class="field-error" role="alert">
+                          {{ stockError() }}
+                        </span>
+                      }
+                    } @else {
+                      <span class="stock-value">{{ product.currentStock }}</span>
+                    }
+                  </td>
+                  <td class="align-right" data-label="Stock mínimo">
+                    {{ product.minStock }}
+                  </td>
+                  <td data-label="Disponibilidad">
+                    <span [class]="'availability-badge ' + availabilityClass(product)">
+                      {{ availabilityLabel(product) }}
+                    </span>
+                  </td>
+                  <td class="align-right actions-cell" data-label="Acciones">
+                    @if (editingId() !== product.id) {
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="startEdit(product)"
+                        [attr.aria-label]="'Actualizar stock de ' + product.name"
+                      >
+                        <mat-icon aria-hidden="true">edit</mat-icon>
+                        Actualizar
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+}

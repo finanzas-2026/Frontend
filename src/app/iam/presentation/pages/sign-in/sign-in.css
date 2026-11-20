@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+.sign-in-page {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+}
+
+.sign-in-card {
+  max-width: 28rem;
+}

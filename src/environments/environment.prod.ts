@@ -2,8 +2,10 @@ export const environment = {
   production: true,
   salesCreditBaseApi: 'http://localhost:8080/api/v1',
 
-  signInEndpoint: '/auth/login',
-  signUpEndpoint: '/auth/register',
+  //TODO: able signInEndpoint: '/auth/login',
+  //TODO: able signUpEndpoint: '/auth/register',
+  signInEndpoint: '/users',
+  signUpEndpoint: '/users',
   sessionStorageKey: 'sales_credit_active_session',
 
   storesEndpoint: '/stores',
@@ -15,7 +17,4 @@ export const environment = {
   monthlySettlementsEndpoint: '/monthly_settlements',
   paymentsEndpoint: '/payments',
   amortizationSchedulesEndpoint: '/amortization_schedules',
-
-  useFakeApi: false,
-  apiBaseUrl: '/api/v1',
 };

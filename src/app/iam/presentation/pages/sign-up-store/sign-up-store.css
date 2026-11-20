@@ -1,0 +1,245 @@
+:host {
+  display: block;
+}
+
+.wizard-card {
+  max-width: 48rem;
+}
+
+/* Progress indicator */
+.step-indicator {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.75rem;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: center;
+  color: var(--iam-muted);
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 1.05rem;
+  left: calc(50% + 1.4rem);
+  width: calc(100% - 2.8rem);
+  height: 2px;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.step.is-complete:not(:last-child)::after {
+  background: var(--iam-primary);
+}
+
+.step-number {
+  position: relative;
+  z-index: 1;
+  width: 2.1rem;
+  height: 2.1rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: var(--iam-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.step-number mat-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  font-size: 1.1rem;
+}
+
+.step.is-active .step-number {
+  border-color: var(--iam-primary);
+  background: #ffffff;
+  color: var(--iam-primary);
+  box-shadow: 0 0 0 4px rgba(3, 105, 161, 0.12);
+}
+
+.step.is-complete .step-number {
+  background: var(--iam-primary);
+  color: #ffffff;
+}
+
+.step.is-active .step-label,
+.step.is-complete .step-label {
+  color: var(--iam-text);
+  font-weight: 600;
+}
+
+.step-label {
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+/* Fields */
+.step-content {
+  min-height: 18rem;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 1rem;
+}
+
+.field-grid mat-form-field {
+  width: 100%;
+}
+
+.field-span-2 {
+  grid-column: 1 / -1;
+}
+
+/* Confirmation summary */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.summary-card {
+  border: 1px solid var(--iam-border);
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  padding: 1rem 1.25rem;
+}
+
+.summary-card h2 {
+  margin: 0 0 0.75rem;
+  color: var(--iam-text);
+  font-size: 1rem;
+}
+
+.summary-card dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.1rem;
+}
+
+.summary-card dt {
+  color: var(--iam-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.summary-card dd {
+  margin: 0 0 0.55rem;
+  color: var(--iam-text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.summary-card dd:last-child {
+  margin-bottom: 0;
+}
+
+.summary-note {
+  margin: 1rem 0 0;
+  color: var(--iam-muted);
+  font-size: 0.8rem;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--iam-primary-soft);
+  color: var(--iam-primary-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Navigation */
+.wizard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.wizard-actions .primary-button {
+  min-width: 10rem;
+}
+
+/* Success state */
+.success-panel {
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.success-icon {
+  width: 4rem;
+  height: 4rem;
+  font-size: 4rem;
+  color: #15803d;
+}
+
+.success-panel h1 {
+  margin: 0.75rem 0 0.5rem;
+  color: var(--iam-text);
+  font-size: 1.75rem;
+}
+
+.success-panel p {
+  max-width: 28rem;
+  margin: 0 auto 1.5rem;
+  color: var(--iam-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .step-content {
+    min-height: 0;
+  }
+
+  .field-grid,
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-span-2 {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .wizard-actions {
+    flex-direction: column-reverse;
+  }
+
+  .wizard-actions .primary-button {
+    min-width: 0;
+  }
+
+  .step-indicator {
+    gap: 0.25rem;
+  }
+
+  .step-label {
+    font-size: 0.68rem;
+  }
+
+  .summary-card {
+    padding: 0.9rem 1rem;
+  }
+}

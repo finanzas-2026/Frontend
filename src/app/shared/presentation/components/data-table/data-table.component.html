@@ -1,0 +1,56 @@
+@if (items().length === 0) {
+  <app-empty-state [title]="emptyTitle()" [message]="emptyMessage()" />
+} @else {
+  <div class="table-container">
+    <table class="app-table">
+      <thead>
+        <tr>
+          @for (col of columns(); track col.key) {
+            <th scope="col" [class]="'align-' + (col.align || 'left')">
+              {{ col.header }}
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of pagedItems(); track $index) {
+          <tr>
+            @for (col of columns(); track col.key) {
+              <td [class]="'align-' + (col.align || 'left')">
+                {{ getCellContent(item, col) }}
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (totalPages() > 1) {
+      <footer class="table-pagination">
+        <span class="pagination-info">
+          Página {{ currentPage() }} de {{ totalPages() }} ({{ items().length }} registros)
+        </span>
+        <div class="pagination-controls">
+          <button
+            mat-icon-button
+            type="button"
+            [disabled]="currentPage() === 1"
+            (click)="prevPage()"
+            aria-label="Página anterior"
+          >
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            [disabled]="currentPage() === totalPages()"
+            (click)="nextPage()"
+            aria-label="Página siguiente"
+          >
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </footer>
+    }
+  </div>
+}
