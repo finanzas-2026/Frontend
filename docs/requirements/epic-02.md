@@ -29,6 +29,8 @@
 * **CUANDO** la transacción es confirmada por el sistema,
 * **ENTONCES** el contador de existencias (stock_actual) del producto se reduce automáticamente.
 
+**Nota técnica:** La actualización automática del inventario requiere la integración entre BC 02 y BC 04. Véase [`../architecture/architecture.md`](../architecture/architecture.md).
+
 ### Scenario 02
 * **DADO** que el stock de un producto alcanza o cae por debajo del stock_minimo configurado,
 * **CUANDO** el Administrador visualiza el inventario o la pantalla de ventas,
