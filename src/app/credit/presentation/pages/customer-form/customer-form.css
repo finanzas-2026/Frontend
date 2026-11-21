@@ -1,0 +1,108 @@
+:host {
+  --credit-primary: #0369a1;
+  --credit-primary-dark: #075985;
+  --credit-primary-soft: #e0f2fe;
+  --credit-text: #0f172a;
+  --credit-muted: #475569;
+  --credit-border: #e2e8f0;
+  --credit-danger: #b91c1c;
+  --credit-danger-soft: #fef2f2;
+
+  display: block;
+}
+
+.page-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.65rem;
+  background: var(--credit-danger-soft);
+  color: var(--credit-danger);
+  font-size: 0.85rem;
+}
+
+.page-alert span {
+  flex: 1;
+}
+
+.state-card {
+  border-color: var(--credit-border);
+  background: #ffffff;
+}
+
+.state-card mat-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.state-icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--credit-danger);
+}
+
+.form-card {
+  border-color: var(--credit-border);
+  background: #ffffff;
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-heading h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+  color: var(--credit-text);
+}
+
+.section-heading p {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--credit-muted);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem;
+}
+
+.field-span-2 {
+  grid-column: span 2;
+}
+
+.readonly-value {
+  margin: 0;
+  font-weight: 600;
+  color: var(--credit-text);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+  .field-span-2 {
+    grid-column: span 1;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions > * {
+    width: 100%;
+  }
+}
