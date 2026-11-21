@@ -9,7 +9,8 @@ Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 export interface RateNormalizationInput {
   rateValue: Decimal | string | number;
   rateType: 'NOMINAL' | 'EFECTIVA';
-  compoundingDays?: number; // m: e.g. 360 for daily in commercial year, 30 for monthly
+  compoundingDays?: number;
+  ratePeriodDays?: number;
 }
 
 export interface NormalizedRatesOutput {
@@ -18,29 +19,13 @@ export interface NormalizedRatesOutput {
   tep30: Decimal;
 }
 
-/**
- * Normalizes rates to commercial 360/30 base.
- * If TNA: TEA = (1 + TNA/m)^m - 1
- * If TEA: TEA = rateValue
- * TED = (1 + TEA)^(1/360) - 1
- * TEP30 = (1 + TEA)^(30/360) - 1
- */
 export function normalizeRates(input: RateNormalizationInput): NormalizedRatesOutput {
-  const rawRate = input.rateValue instanceof Decimal
-    ? input.rateValue
-    : new Decimal(input.rateValue.toString());
-
-  let tea: Decimal;
-
-  if (input.rateType === 'NOMINAL') {
-    const m = new Decimal(input.compoundingDays ?? COMMERCIAL_YEAR_DAYS);
-    // TEA = (1 + TNA/m)^m - 1
-    const factor = new Decimal(1).plus(rawRate.dividedBy(m));
-    tea = factor.pow(m).minus(1);
-  } else {
-    tea = rawRate;
+  const raw = new Decimal(input.rateValue);
+  const period = input.ratePeriodDays;
+  if (!raw.isFinite() || raw.lt(0) || period === undefined || ![1, 15, 30, 360].includes(period)) {
+    throw new Error('Falta el período pactado o la tasa es inválida.');
   }
-
+  const tea = toAnnualRate(raw, period, input);
   // TED = (1 + TEA)^(1/360) - 1
   const onePlusTea = new Decimal(1).plus(tea);
   const ted = onePlusTea.pow(new Decimal(1).dividedBy(COMMERCIAL_YEAR_DAYS)).minus(1);
@@ -49,4 +34,24 @@ export function normalizeRates(input: RateNormalizationInput): NormalizedRatesOu
   const tep30 = onePlusTea.pow(new Decimal(COMMERCIAL_MONTH_DAYS).dividedBy(COMMERCIAL_YEAR_DAYS)).minus(1);
 
   return { tea, ted, tep30 };
+}
+
+
+function toAnnualRate(raw: Decimal, period: number, input: RateNormalizationInput): Decimal {
+  if (input.rateType === 'EFECTIVA' && input.compoundingDays == null) {
+    return raw.plus(1).pow(new Decimal(COMMERCIAL_YEAR_DAYS).div(period)).minus(1);
+  }
+  if (input.rateType !== 'NOMINAL') throw new Error('Tipo o capitalización de tasa inválidos.');
+  const days = input.compoundingDays;
+  if (days === 7) throw new Error('Capitalización semanal pendiente de acuerdo con Backend.');
+  if (days === undefined || ![1, 15, 30, 60, 90, 180, 360].includes(days)) {
+    throw new Error('Frecuencia de capitalización inválida.');
+  }
+  return raw.times(days).div(period).plus(1).pow(new Decimal(COMMERCIAL_YEAR_DAYS).div(days)).minus(1);
+}
+
+
+export function calculateOverdueInterest(principal: string, annualRate: Decimal, days: number): Decimal {
+  const exponent = new Decimal(Math.max(days, 0)).div(COMMERCIAL_YEAR_DAYS);
+  return new Decimal(principal).times(annualRate.plus(1).pow(exponent).minus(1));
 }

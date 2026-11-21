@@ -105,6 +105,14 @@ export class SalesAssembler
       creditLimit,
       currentDebt,
       allowsMonthlyPayments: dto.allows_monthly_payments,
+      terms: dto.max_credit_months && dto.compensatory_rate_type && dto.compensatory_rate_value &&
+        dto.compensatory_rate_period_days && dto.compensatory_capitalization_days !== undefined ? {
+          maxMonths: dto.max_credit_months,
+          rateType: dto.compensatory_rate_type,
+          rateValue: dto.compensatory_rate_value,
+          ratePeriodDays: dto.compensatory_rate_period_days,
+          compoundingDays: dto.compensatory_capitalization_days,
+        } : undefined,
     });
   }
 
@@ -118,6 +126,8 @@ export class SalesAssembler
       category: dto.category,
       unitPrice,
       stock: dto.stock,
+      creditUnitPrice: dto.credit_unit_price ? Money.fromString(dto.credit_unit_price).unwrap() : undefined,
+      allowsMonthlyPayments: dto.allows_monthly_payments,
     });
   }
 
@@ -129,6 +139,7 @@ export class SalesAssembler
       installments_count: params.installmentsCount,
       grace_days: params.graceDays,
       tea: params.tea ? params.tea.toFractionString() : undefined,
+      first_due_date: params.firstDueDate,
       details: params.details.map((d) => ({
         product_id: d.productId,
         quantity: d.quantity,

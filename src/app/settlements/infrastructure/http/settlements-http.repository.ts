@@ -146,7 +146,7 @@ export class SettlementsHttpRepository
     // correspondientes en el backend real. JSON Server no expone `__mock/*`.
     return this.http
       .post<{ message: string; generatedCount: number }>(
-        `${this.rootApiUrl}/__mock/run-cutoff`,
+        `${this.basePath}/cutoff`,
         {}
       )
       .pipe(catchError((error) => this.handleError(error)));

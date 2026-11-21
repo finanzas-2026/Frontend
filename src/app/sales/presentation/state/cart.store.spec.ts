@@ -1,3 +1,4 @@
+import { ACTIVE_STORE_ID } from '../../../shared/application/active-store.token';
 import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Money, PaymentModes, ok } from '@shared/domain';
@@ -49,6 +50,7 @@ describe('Sales BC - CartStore (Signals)', () => {
     TestBed.configureTestingModule({
       providers: [
         CartStore,
+        { provide: ACTIVE_STORE_ID, useValue: () => 1 },
         {
           provide: GetCustomersUseCase,
           useValue: { execute: async () => ok([mockCustomer]) },

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import {
@@ -6,6 +6,7 @@ import {
   DataTableComponent,
   PageHeaderComponent,
 } from '@shared/index';
+import { Money } from '@shared/domain';
 import { CollectionStore } from '../../state/collection.store';
 
 @Component({
@@ -24,6 +25,10 @@ import { CollectionStore } from '../../state/collection.store';
 export class CustomerPortalPageComponent implements OnInit {
   readonly store = inject(CollectionStore);
 
+  readonly amountDue = computed(() => this.store.settlements()
+    .filter((row) => !row.isPaid())
+    .reduce((total, row) => total.add(row.totalDue), Money.zero()));
+
   readonly columns: DataTableColumn<Record<string, unknown>>[] = [
     { key: 'code', header: 'Código Cierre', align: 'left' },
     { key: 'cutoffDate', header: 'Fecha de Corte', align: 'center' },
@@ -33,7 +38,7 @@ export class CustomerPortalPageComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    void this.store.loadSettlements();
+    void this.store.loadSettlements(false);
   }
 
   tableItems(): Record<string, unknown>[] {

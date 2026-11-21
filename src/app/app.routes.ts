@@ -48,6 +48,7 @@ export const routes: Routes = [
       },
       {
         path: 'sales',
+        canActivate: [roleGuard(UserRoles.STORE_ADMIN, UserRoles.SUPER_ADMIN)],
         loadChildren: () => import('./sales/presentation/sales.routes').then((m) => m.SALES_ROUTES),
       },
       {
@@ -56,6 +57,7 @@ export const routes: Routes = [
       },
       {
         path: 'analytics',
+        canActivate: [roleGuard(UserRoles.STORE_ADMIN, UserRoles.SUPER_ADMIN)],
         loadChildren: () => import('./analytics/presentation/analytics.routes').then((m) => m.ANALYTICS_ROUTES),
       },
     ],

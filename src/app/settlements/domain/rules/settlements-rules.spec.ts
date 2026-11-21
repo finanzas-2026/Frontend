@@ -1,42 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import Decimal from 'decimal.js';
-import { Money, Rate } from '@shared/domain';
-import { OverdueCapitalPenaltyRule } from './overdue-capital-penalty.rule';
+import { Money } from '@shared/domain';
 import { LegalImputationOrderRule } from './legal-imputation-order.rule';
 import { FullPaymentStrictRule } from './full-payment-strict.rule';
 
 describe('BC Settlements - Domain Rules & Financial Properties', () => {
-  describe('Caso de Prueba 2: Liquidación en Mora (Informe de Finanzas)', () => {
-    it('debe calcular exactamente S/ 3.69 de mora y S/ 828.69 de liquidación total para P=800, I=25, TEA=18%, d=10', () => {
-      const principal = Money.fromString('800.00').unwrap();
-      const compensatory = Money.fromString('25.00').unwrap();
-      const tea = Rate.fromPercent('18.00').unwrap();
-      const daysOverdue = 10;
-
-      // Cálculo de mora
-      const mora = OverdueCapitalPenaltyRule.calculate(principal, tea, daysOverdue);
-
-      // Verificación exacta del Caso de Prueba 2
-      expect(mora.toString()).toBe('3.69');
-
-      // Total a liquidar
-      const totalDue = principal.add(compensatory).add(mora);
-      expect(totalDue.toString()).toBe('828.69');
-    });
-
-    it('debe retornar S/ 0.00 si no hay días de atraso (d <= 0)', () => {
-      const principal = Money.fromString('800.00').unwrap();
-      const tea = Rate.fromPercent('18.00').unwrap();
-
-      const moraZero = OverdueCapitalPenaltyRule.calculate(principal, tea, 0);
-      const moraNegative = OverdueCapitalPenaltyRule.calculate(principal, tea, -3);
-
-      expect(moraZero.toString()).toBe('0.00');
-      expect(moraNegative.toString()).toBe('0.00');
-    });
-  });
-
   describe('LegalImputationOrderRule (Art. 1257 Código Civil)', () => {
     const moraDue = Money.fromString('3.69').unwrap();
     const compDue = Money.fromString('25.00').unwrap();

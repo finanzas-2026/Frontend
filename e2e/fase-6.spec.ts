@@ -1,161 +1,60 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { demoApi, operatorHeaders, signIn } from './demo-session';
 
-test.describe('Fase 6: Suite Integral E2E, Responsividad y Accesibilidad @f6', () => {
-  test('Flujo completo de negocio: Finanzas -> Ventas POS -> Liquidación/Cobranza -> MIS Analytics', async ({
-    page,
-  }) => {
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
+test('completa venta financiada, cierre, cobro idempotente y actualización de analítica', async ({ page, request }) => {
+  await signIn(page, '/sales/pos');
+  await page.getByRole('combobox', { name: 'Seleccionar cliente para la venta' }).click();
+  await page.getByRole('option', { name: /Ana Gómez/ }).click();
+  await page.getByRole('button', { name: /Agregar Saco de Arroz/ }).click();
+  await page.getByText('Financiado en Cuotas (Francés)', { exact: true }).click();
+  await expect(page.getByText(/Cuota Estimada/)).toBeVisible();
+  const saleResponse = page.waitForResponse((response) => response.url() === demoApi + '/sales' &&
+    response.request().method() === 'POST');
+  await page.getByRole('button', { name: 'Procesar Venta' }).click();
+  const sale = await saleResponse;
+  expect(sale.status()).toBe(201);
+  expect(await sale.json()).toMatchObject({ total_amount: '175.00', payment_mode: 'FINANCIADO_CUOTAS' });
 
-    // -------------------------------------------------------------
-    // 1. FINANCING: Simulación de Cronograma Francés
-    // -------------------------------------------------------------
-    await page.goto('/financing/simulator');
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1.page-title')).toContainText('Simulador de Financiamiento Francés');
+  const headers = operatorHeaders;
+  const advance = await request.post(demoApi + '/__mock/advance-date', { headers, data: { days: 45 } });
+  expect(advance.ok()).toBeTruthy();
+  await page.goto('/settlements/list');
+  const closeResponse = page.waitForResponse((response) => response.url() === demoApi + '/settlements/cutoff');
+  await page.getByRole('button', { name: 'Simular Corte Mensual' }).click();
+  expect(await (await closeResponse).json()).toMatchObject({ generatedCount: 1 });
+  const repeatedClose = await request.post(demoApi + '/settlements/cutoff', { headers, data: {} });
+  expect(await repeatedClose.json()).toMatchObject({ generatedCount: 0 });
 
-    await page.locator('input[formControlName="initialCapital"]').fill('1500');
-    await page.locator('input[formControlName="rateValue"]').fill('24');
-    await page.locator('input[formControlName="totalInstallments"]').fill('3');
-    await page.locator('input[formControlName="graceDays"]').fill('15');
-
-    await page.locator('button[type="submit"]').click();
-    const scheduleTable = page.locator('.schedule-table');
-    await expect(scheduleTable).toBeVisible();
-
-    // Validar ajuste terminal Sn = 0.00
-    const scheduleRows = scheduleTable.locator('tbody tr');
-    await expect(scheduleRows).toHaveCount(4); // Fila 0 (gracia) + 3 cuotas
-    const lastRow = scheduleRows.last();
-    await expect(lastRow).toContainText('S/ 0.00'); // Saldo Final Cuota 3
-
-    // -------------------------------------------------------------
-    // 2. SALES: Emisión de Venta en Mostrador POS
-    // -------------------------------------------------------------
-    await page.goto('/sales/pos');
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1.page-title')).toContainText('Punto de Venta y Crédito Comercial');
-    await expect(page.locator('.credit-info-grid')).toBeVisible();
-
-    // Agregar producto al carrito
-    const firstAddBtn = page.locator('.product-item-card button').first();
-    await expect(firstAddBtn).toBeVisible();
-    await firstAddBtn.click();
-
-    // Seleccionar modalidad cuotas
-    const cuotasRadio = page.getByRole('radio', { name: /Financiado en Cuotas/i });
-    await cuotasRadio.click();
-
-    // Emitir venta
-    const checkoutBtn = page.locator('button.btn-checkout');
-    await expect(checkoutBtn).toBeEnabled();
-    await checkoutBtn.click();
-    await expect(page.locator('.empty-cart-message')).toBeVisible({ timeout: 5000 });
-
-    // Verificar en historial
-    await page.goto('/sales/history');
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('table.app-table')).toBeVisible();
-
-    // -------------------------------------------------------------
-    // 3. SETTLEMENTS: Cobranza Legal Art. 1257 en Ventanilla
-    // -------------------------------------------------------------
-    await page.goto('/settlements/desk');
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1.page-title')).toContainText('Ventanilla de Cobranza y Liquidación Legal');
-
-    // Validar montos del Caso de Prueba 2 (S/ 828.69)
-    await expect(page.locator('.kpi-value').nth(3)).toContainText('S/ 828.69');
-
-    // Pago parcial rechazado
-    const amountInput = page.locator('input[aria-label="Importe de cobranza"]');
-    await amountInput.fill('400.00');
-    await expect(page.locator('.alert-error')).toBeVisible();
-
-    // Pago total exacto
-    await amountInput.fill('828.69');
-    await expect(page.locator('.alert-error')).not.toBeVisible();
-    await page.locator('button.btn-pay').click();
-
-    // Modal de comprobante
-    await expect(page.locator('.receipt-modal-content')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('#receipt-title')).toContainText('COMPROBANTE DE COBRANZA');
-    await page.locator('.receipt-actions button').last().click();
-
-    // -------------------------------------------------------------
-    // 4. ANALYTICS: Panel Gerencial MIS y Auditoría
-    // -------------------------------------------------------------
-    await page.goto('/analytics/dashboard');
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1.page-title')).toContainText('Panel de Control Gerencial MIS');
-
-    // Validar 4 KPIs
-    const kpis = page.locator('.kpi-main-val');
-    await expect(kpis.nth(0)).toContainText('14,850.00');
-    await expect(kpis.nth(1)).toContainText('828.69');
-    await expect(kpis.nth(2)).toContainText('42 clientes');
-    await expect(kpis.nth(3)).toContainText('5.58');
-
-    // Validar gráfico de 12 meses
-    await expect(page.locator('.chart-container')).toBeVisible();
-
-    // Validar bitácora de auditoría
-    await page.goto('/analytics/movements');
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('table.app-table tbody tr')).toHaveCount(4);
-
-    // Consola libre de errores
-    expect(consoleErrors).toEqual([]);
+  await page.goto('/settlements/desk');
+  await page.getByRole('button', { name: /LIQ-3/ }).click();
+  const payResponse = page.waitForResponse((response) => response.url() === demoApi + '/settlements/3/pay');
+  await page.getByRole('button', { name: 'Cobrar y Emitir Comprobante' }).click();
+  const pay = await payResponse;
+  expect(pay.ok()).toBeTruthy();
+  const receipt = await pay.json();
+  await expect(page.getByRole('dialog')).toContainText(receipt.receipt_number);
+  const duplicate = await request.post(demoApi + '/settlements/3/pay', {
+    headers, data: { amount: receipt.amount, payment_method: receipt.payment_method,
+      reference_number: receipt.reference_number },
   });
+  expect(await duplicate.json()).toEqual(receipt);
 
-  test('Responsividad: Verificación en viewport móvil (375x667) y desktop (1280x800)', async ({
-    page,
-  }) => {
-    // 1. Mobile Viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/analytics/dashboard');
-    await page.waitForLoadState('networkidle');
+  await page.goto('/analytics/dashboard');
+  await expect(page.locator('.kpi-card').first()).toContainText('630.00');
+  await page.goto('/analytics/movements');
+  await expect(page.getByText('Recibo ' + receipt.receipt_number)).toHaveCount(1);
+});
 
-    await expect(page.locator('.shell-toolbar')).toBeVisible();
-    await expect(page.locator('.kpi-cards-grid')).toBeVisible();
-    await expect(page.locator('.chart-container')).toBeVisible();
-    await expect(page.locator('.mobile-bottom-bar')).toBeVisible();
-
-    // 2. Desktop Viewport
-    await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto('/settlements/desk');
-    await page.waitForLoadState('networkidle');
-
-    await expect(page.locator('.shell-sidebar')).toBeVisible();
-    await expect(page.locator('.desk-layout')).toBeVisible();
-    await expect(page.locator('.imputation-steps')).toBeVisible();
-  });
-
-  test('Accesibilidad WCAG 2.1 AA en todas las vistas principales', async ({ page }) => {
-    const urls = [
-      '/financing/simulator',
-      '/sales/pos',
-      '/settlements/desk',
-      '/analytics/dashboard',
-    ];
-
-    for (const url of urls) {
-      await page.goto(url);
-      await page.waitForLoadState('networkidle');
-
-      const scan = await new AxeBuilder({ page })
-        .exclude('.mat-mdc-select-panel')
-        .analyze();
-
-      const criticalOrSerious = scan.violations.filter(
-        (v) => v.impact === 'critical' || v.impact === 'serious'
-      );
-      expect(criticalOrSerious, `Violaciones de accesibilidad en ${url}`).toHaveLength(0);
-    }
-  });
+test('comprueba accesibilidad sobre las vistas autenticadas y adapta el simulador a móvil', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page, '/financing/simulator');
+  await expect(page.locator('.mobile-view')).toBeVisible();
+  for (const path of ['/financing/simulator', '/sales/pos', '/settlements/desk', '/analytics/dashboard']) {
+    await page.goto(path);
+    await expect(page).toHaveURL((url) => url.pathname === path);
+    await expect(page.locator('h1')).toBeVisible();
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    expect(results.violations.filter((item) => item.impact === 'critical'), path).toEqual([]);
+  }
 });

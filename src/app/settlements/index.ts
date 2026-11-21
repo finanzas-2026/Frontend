@@ -7,7 +7,6 @@ export * from './domain/model/payoff-quote.vo';
 export * from './domain/model/imputation-breakdown.vo';
 
 // Domain Rules
-export * from './domain/rules/overdue-capital-penalty.rule';
 export * from './domain/rules/legal-imputation-order.rule';
 export * from './domain/rules/full-payment-strict.rule';
 

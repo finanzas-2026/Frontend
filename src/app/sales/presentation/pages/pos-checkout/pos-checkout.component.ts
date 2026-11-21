@@ -67,11 +67,6 @@ export class PosCheckoutPageComponent implements OnInit {
     this.store.setPaymentMode(mode);
   }
 
-  onRateChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.store.setInstallmentParams({ rateValue: input.value });
-  }
-
   onGraceChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.store.setInstallmentParams({ graceDays: Number(input.value) });

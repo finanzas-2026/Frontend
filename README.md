@@ -2,6 +2,10 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.6.
 
+## API de demostración
+
+Consulta el [contrato y las instrucciones de la demo](docs/api-contract.md).
+
 ## Development server
 
 To start a local development server, run:

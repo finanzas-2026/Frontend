@@ -23,14 +23,22 @@ export class DashboardStore {
   async loadDashboardData(): Promise<void> {
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.kpis.set(null);
+    this.monthlyFlows.set([]);
     try {
       const [kpiRes, flowRes] = await Promise.all([
         this.getKpisUseCase.execute(),
         this.getFlowsUseCase.execute(),
       ]);
 
-      if (kpiRes.isOk()) this.kpis.set(kpiRes.value);
-      if (flowRes.isOk()) this.monthlyFlows.set(flowRes.value);
+      if (kpiRes.isErr()) {
+        this.errorMessage.set(kpiRes.error.message);
+      } else if (flowRes.isErr()) {
+        this.errorMessage.set(flowRes.error.message);
+      } else {
+        this.kpis.set(kpiRes.value);
+        this.monthlyFlows.set(flowRes.value);
+      }
     } catch {
       this.errorMessage.set('Error al cargar datos del dashboard gerencial');
     } finally {
@@ -40,10 +48,14 @@ export class DashboardStore {
 
   async loadMovements(): Promise<void> {
     this.isLoading.set(true);
+    this.movements.set([]);
+    this.errorMessage.set(null);
     try {
       const res = await this.listMovementsUseCase.execute();
       if (res.isOk()) {
         this.movements.set(res.value);
+      } else {
+        this.errorMessage.set(res.error.message);
       }
     } finally {
       this.isLoading.set(false);

@@ -1,3 +1,4 @@
+import { environment } from '../../../../../environments/environment';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -28,6 +29,7 @@ import { RunCutoffUseCase } from '../../../application/use-cases/run-cutoff.use-
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettlementsListPageComponent implements OnInit {
+  readonly demo = environment.demo;
   readonly store = inject(CollectionStore);
   private readonly runCutoffUseCase = inject(RunCutoffUseCase);
   private readonly toast = inject(ToastService);

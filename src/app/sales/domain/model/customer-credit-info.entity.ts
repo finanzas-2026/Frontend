@@ -1,6 +1,15 @@
 import { BaseEntity, Money } from '@shared/domain';
 
+export interface AgreedCreditTerms {
+  maxMonths: number;
+  rateType: 'NOMINAL' | 'EFECTIVA';
+  rateValue: string;
+  ratePeriodDays: number;
+  compoundingDays: number | null;
+}
+
 export interface CustomerCreditInfoProps {
+  terms?: AgreedCreditTerms;
   id: number;
   fullName: string;
   documentNumber: string;
@@ -10,6 +19,7 @@ export interface CustomerCreditInfoProps {
 }
 
 export class CustomerCreditInfo implements BaseEntity {
+  readonly terms?: AgreedCreditTerms;
   readonly id: number;
   readonly fullName: string;
   readonly documentNumber: string;
@@ -18,6 +28,7 @@ export class CustomerCreditInfo implements BaseEntity {
   readonly allowsMonthlyPayments: boolean;
 
   constructor(props: CustomerCreditInfoProps) {
+    this.terms = props.terms;
     this.id = props.id;
     this.fullName = props.fullName;
     this.documentNumber = props.documentNumber;

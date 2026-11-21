@@ -4,6 +4,7 @@
 />
 
 <div class="toolbar-actions">
+  @if (demo) {
   <button
     mat-stroked-button
     type="button"
@@ -12,6 +13,7 @@
   >
     ⏩ Adelantar +5 Días
   </button>
+  }
   <button
     mat-flat-button
     color="primary"
@@ -19,7 +21,7 @@
     (click)="onRunCutoff()"
     [disabled]="store.isLoading()"
   >
-    ⚙️ Simular Corte Mensual
+    {{ demo ? 'Simular Corte Mensual' : 'Ejecutar Corte Mensual' }}
   </button>
 </div>
 

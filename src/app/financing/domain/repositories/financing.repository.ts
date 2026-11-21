@@ -8,6 +8,8 @@ export interface FinancingSimulationParams {
   readonly rate: Rate;
   readonly rateType: RateType;
   readonly compoundingDays?: number;
+  readonly ratePeriodDays?: number;
+  readonly customerId?: number;
   readonly totalInstallments: number;
   readonly graceDays?: number;
   readonly firstDueDate?: string;

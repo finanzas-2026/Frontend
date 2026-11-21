@@ -44,7 +44,7 @@ import { SimulateScheduleCommand } from '../../../application/models/simulate-sc
   template: `
     <app-page-header
       title="Simulador de Financiamiento Francés"
-      subtitle="Ecuaciones intertemporales exactas en base comercial 360/30 con gracia total (Art. 1250 C.C.)"
+      subtitle="Cuotas, intereses y capital con base comercial 360/30"
     />
 
     <section class="simulator-layout">
@@ -62,17 +62,37 @@ import { SimulateScheduleCommand } from '../../../application/models/simulate-sc
               </mat-form-field>
 
               <mat-form-field appearance="outline">
-                <mat-label>Tasa de Interés Anual (%)</mat-label>
+                <mat-label>Tasa del período (%)</mat-label>
                 <input matInput type="number" step="0.0000001" formControlName="rateValue" placeholder="24.0000000" />
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Tipo de Tasa</mat-label>
                 <mat-select formControlName="rateType" aria-label="Tipo de Tasa">
-                  <mat-option [value]="rateTypes.NOMINAL">TNA (Nominal Anual)</mat-option>
-                  <mat-option [value]="rateTypes.EFECTIVA">TEA (Efectiva Anual)</mat-option>
+                  <mat-option [value]="rateTypes.NOMINAL">Nominal</mat-option>
+                  <mat-option [value]="rateTypes.EFECTIVA">Efectiva</mat-option>
                 </mat-select>
               </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Período de la tasa</mat-label>
+                <mat-select formControlName="ratePeriodDays">
+                  @for (days of ratePeriods; track days) {
+                    <mat-option [value]="days">{{ days }} días</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              @if (form.controls.rateType.value === rateTypes.NOMINAL) {
+                <mat-form-field appearance="outline">
+                  <mat-label>Capitalización</mat-label>
+                  <mat-select formControlName="compoundingDays">
+                    @for (days of capitalizationPeriods; track days) {
+                      <mat-option [value]="days">Cada {{ days }} días</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              }
 
               <mat-form-field appearance="outline">
                 <mat-label>Plazo (Meses)</mat-label>
@@ -218,11 +238,15 @@ export class SimulatorComponent implements OnInit {
   protected readonly fb = inject(FormBuilder);
   readonly store = inject(FinancingStore);
   readonly rateTypes = RateTypes;
+  readonly ratePeriods = [1, 15, 30, 360];
+  readonly capitalizationPeriods = [1, 7, 15, 30, 60, 90, 180, 360];
 
   readonly form = this.fb.group({
     initialCapital: [1500.0, [Validators.required, Validators.min(1)]],
-    rateValue: [24.0, [Validators.required, Validators.min(0.0000001)]],
+    rateValue: [24.0, [Validators.required, Validators.min(0)]],
     rateType: [RateTypes.NOMINAL as RateType, [Validators.required]],
+    ratePeriodDays: [360, Validators.required],
+    compoundingDays: [1, Validators.required],
     totalInstallments: [3, [Validators.required, Validators.min(1), Validators.max(60)]],
     graceDays: [15, [Validators.required, Validators.min(0)]],
   });
@@ -243,10 +267,10 @@ export class SimulatorComponent implements OnInit {
       initialCapital: capital,
       rate,
       rateType: val.rateType || RateTypes.NOMINAL,
-      compoundingDays: 360,
+      compoundingDays: val.rateType === RateTypes.NOMINAL ? val.compoundingDays ?? undefined : undefined,
+      ratePeriodDays: val.ratePeriodDays ?? undefined,
       totalInstallments: Number(val.totalInstallments),
       graceDays: Number(val.graceDays),
-      firstDueDate: '2026-01-15',
     };
 
     void this.store.simulate(command);

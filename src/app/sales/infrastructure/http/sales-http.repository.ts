@@ -94,7 +94,7 @@ export class SalesHttpRepository extends BaseApi implements SalesRepository {
 
   getCustomers(): Observable<CustomerCreditInfo[]> {
     const listSchema = z.array(customerCreditInfoSchema);
-    return this.http.get<CustomerCreditInfoDto[]>(`${this.rootApiUrl}/customers`).pipe(
+    return this.http.get<CustomerCreditInfoDto[]>(`${this.rootApiUrl}/sales/customers`).pipe(
       map((response) => {
         const parseResult = listSchema.safeParse(response);
         if (!parseResult.success) {

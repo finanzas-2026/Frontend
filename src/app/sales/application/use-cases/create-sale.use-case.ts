@@ -13,21 +13,7 @@ export class CreateSaleUseCase implements UseCase<CreateSaleCommand, Sale> {
 
   async execute(command: CreateSaleCommand): Promise<Result<Sale, AppError>> {
     try {
-      const sale = await firstValueFrom(
-        this.salesRepository.createSale({
-          customerId: command.customerId,
-          storeId: command.storeId,
-          paymentMode: command.paymentMode,
-          installmentsCount: command.installmentsCount,
-          graceDays: command.graceDays,
-          tea: command.tea,
-          details: command.details.map((d) => ({
-            productId: d.productId,
-            quantity: d.quantity,
-            unitPrice: d.unitPrice,
-          })),
-        })
-      );
+      const sale = await firstValueFrom(this.salesRepository.createSale(command));
       return ok(sale);
     } catch (error: unknown) {
       if (error instanceof AppError) {

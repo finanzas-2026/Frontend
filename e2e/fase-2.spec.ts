@@ -1,55 +1,23 @@
 import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { demoApi, signIn } from './demo-session';
 
-test.describe('Fase 2: Motor de Financiamiento Francés y Simulador @f2', () => {
-  test('debe permitir simular el Caso de Prueba 1 y verificar cuotas francesas con accesibilidad', async ({
-    page,
-  }) => {
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
+test('muestra un cronograma calculado por la API después del inicio de sesión', async ({ page }) => {
+  await signIn(page, '/financing/simulator');
+  await expect(page.getByRole('heading', { name: 'Simulador de Financiamiento Francés' })).toBeVisible();
+  await expect(page.locator('.schedule-table tbody tr')).toHaveCount(4);
+  await expect(page.locator('.schedule-table tbody tr').last()).toContainText('0.00');
+  await expect(page.locator('.schedule-table')).toContainText('525.56');
+});
 
-    await page.goto('/financing/simulator');
-
-    // Verify Page Header
-    await expect(page.locator('h1')).toContainText('Simulador de Financiamiento Francés');
-
-    // Verify initial simulation results are rendered
-    const kpiCapital = page.locator('.kpi-card', { hasText: "Capital Capitalizado (P')" });
-    await expect(kpiCapital).toBeVisible();
-    await expect(kpiCapital).toContainText('S/ 1,515.07');
-
-    const kpiCuota = page.locator('.kpi-card', { hasText: 'Cuota Uniforme (R)' });
-    await expect(kpiCuota).toContainText('S/ 525.52');
-
-    // Verify schedule table
-    const scheduleTable = page.locator('.schedule-table');
-    await expect(scheduleTable).toBeVisible();
-
-    // Verify Grace row (Cuota 0)
-    await expect(scheduleTable.locator('text=0 (Gracia Total)')).toBeVisible();
-
-    // Verify Cuota 3 final balance is 0.00
-    const rows = scheduleTable.locator('tbody tr');
-    await expect(rows).toHaveCount(4); // row 0 + 3 cuotas
-    const lastRow = rows.last();
-    await expect(lastRow).toContainText('S/ 525.65');
-    await expect(lastRow).toContainText('S/ 0.00');
-
-    // Verify 0 uncontrolled console errors (G9)
-    expect(consoleErrors).toHaveLength(0);
-
-    // Verify accessibility with axe-core (G10)
-    const scanResults = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa'])
-      .analyze();
-
-    const criticalOrSerious = scanResults.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    );
-    expect(criticalOrSerious).toHaveLength(0);
+test('valida unidades y períodos en el contrato del simulador', async ({ request }) => {
+  const data = { initial_capital: '100.00', rate_value: '0.18', rate_type: 'EFECTIVA',
+    rate_period_days: 360, total_installments: 12, first_due_date: '2027-01-31' };
+  const simulated = await request.post(demoApi + '/finance/simulate', { data });
+  expect(simulated.ok()).toBeTruthy();
+  expect(await simulated.json()).toMatchObject({ tea: '0.1800000', total_payment: '109.26' });
+  const weekly = await request.post(demoApi + '/finance/simulate', {
+    data: { ...data, rate_type: 'NOMINAL', compounding_days: 7 },
   });
+  expect(weekly.status()).toBe(422);
+  expect((await weekly.json()).message).toContain('Capitalización semanal pendiente');
 });

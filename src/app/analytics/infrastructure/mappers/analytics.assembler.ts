@@ -39,7 +39,7 @@ export class AnalyticsAssembler
   toKpisEntity(dto: DashboardKpisDto): DashboardKpis {
     const totalRevenue = Money.fromString(dto.total_revenue).unwrapOr(Money.zero());
     const overduePortfolio = Money.fromString(dto.overdue_portfolio).unwrapOr(Money.zero());
-    const defaultRate = Rate.fromPercent(dto.default_rate).unwrapOr(
+    const defaultRate = Rate.fromFraction(dto.default_rate).unwrapOr(
       Rate.fromFraction('0.0000000').unwrap()
     );
 

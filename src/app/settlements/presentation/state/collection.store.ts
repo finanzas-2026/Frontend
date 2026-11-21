@@ -60,28 +60,26 @@ export class CollectionStore {
   });
 
   readonly canProcessPayment = computed(() => {
-    return (
-      this.selectedSettlement() !== null &&
-      this.payoffQuote() !== null &&
-      !this.isPartialPaymentRejected() &&
-      !this.isSubmitting()
-    );
+    const quote = this.payoffQuote();
+    return quote !== null && this.selectedSettlement()?.isPaid() === false &&
+      this.parsedAmount().equals(quote.totalPayoffAmount) && !this.isSubmitting();
   });
 
-  async loadSettlements(): Promise<void> {
+  async loadSettlements(loadQuote = true): Promise<void> {
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.settlements.set([]);
     try {
       const res = await this.listSettlementsUseCase.execute();
-      if (res.isOk()) {
-        this.settlements.set(res.value);
-        if (res.value.length > 0 && !this.selectedSettlement()) {
-          const firstPending = res.value.find((s) => !s.isPaid()) ?? res.value[0] ?? null;
-          if (firstPending) {
-            void this.selectSettlement(firstPending.id);
-          }
-        }
+      if (res.isErr()) {
+        this.errorMessage.set(res.error.message);
+        return;
       }
+      this.settlements.set(res.value);
+      const selectedId = this.selectedSettlement()?.id;
+      const next = res.value.find((row) => row.id === selectedId) ??
+        res.value.find((row) => !row.isPaid()) ?? res.value[0];
+      if (next && loadQuote) void this.selectSettlement(next.id);
     } finally {
       this.isLoading.set(false);
     }
@@ -90,6 +88,7 @@ export class CollectionStore {
   async selectSettlement(id: number): Promise<void> {
     const settlement = this.settlements().find((s) => s.id === id) ?? null;
     this.selectedSettlement.set(settlement);
+    this.payoffQuote.set(null);
     if (!settlement) {
       this.payoffQuote.set(null);
       return;
@@ -97,7 +96,7 @@ export class CollectionStore {
 
     try {
       const res = await this.getPayoffQuoteUseCase.execute({ settlementId: id });
-      if (res.isOk()) {
+      if (res.isOk() && this.selectedSettlement()?.id === id) {
         this.payoffQuote.set(res.value);
         this.amountToPay.set(res.value.totalPayoffAmount.toString());
       }
@@ -143,11 +142,11 @@ export class CollectionStore {
 
   async processPayment(): Promise<Payment | null> {
     const settlement = this.selectedSettlement();
-    if (!settlement || !this.payoffQuote()) {
+    if (!settlement || settlement.isPaid() || !this.payoffQuote()) {
       this.toast.error('Debe seleccionar una liquidación');
       return null;
     }
-    if (this.isPartialPaymentRejected()) {
+    if (!this.canProcessPayment()) {
       this.toast.error('Pago parcial rechazado. Debe cancelar el total en mora.');
       return null;
     }

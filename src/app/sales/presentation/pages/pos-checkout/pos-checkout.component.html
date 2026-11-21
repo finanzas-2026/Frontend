@@ -82,7 +82,7 @@
               <span class="prod-category">{{ prod.category }}</span>
               <h3 class="prod-title">{{ prod.name }}</h3>
               <div class="prod-sku">SKU: {{ prod.sku }} | Stock: {{ prod.stock }} unid.</div>
-              <div class="prod-price">{{ prod.unitPrice.toFormatted() }}</div>
+              <div class="prod-price">{{ store.priceFor(prod).toFormatted() }}</div>
             </div>
             <button
               mat-flat-button
@@ -120,7 +120,7 @@
                 <div class="cart-item-row">
                   <div class="cart-item-info">
                     <span class="cart-prod-name">{{ item.product.name }}</span>
-                    <span class="cart-prod-unit">{{ item.product.unitPrice.toFormatted() }} c/u</span>
+                    <span class="cart-prod-unit">{{ store.priceFor(item.product).toFormatted() }} c/u</span>
                   </div>
                   <div class="cart-qty-controls">
                     <button
@@ -190,20 +190,13 @@
                       <mat-option [value]="2">2 meses</mat-option>
                       <mat-option [value]="3">3 meses</mat-option>
                       <mat-option [value]="6">6 meses</mat-option>
-                      <mat-option [value]="12">12 meses</mat-option>
+
                     </mat-select>
                   </mat-form-field>
 
-                  <mat-form-field appearance="outline" class="mini-field">
-                    <mat-label>TEA (%)</mat-label>
-                    <input
-                      matInput
-                      type="text"
-                      [value]="store.rateValue()"
-                      (change)="onRateChange($event)"
-                      aria-label="Tasa efectiva anual"
-                    />
-                  </mat-form-field>
+                  @if (store.selectedCustomer()?.terms; as terms) {
+                    <p>Tasa pactada {{ terms.rateValue | percent:'1.0-7' }} · {{ terms.rateType }} · {{ terms.ratePeriodDays }} días</p>
+                  }
 
                   <mat-form-field appearance="outline" class="mini-field">
                     <mat-label>Días Gracia</mat-label>

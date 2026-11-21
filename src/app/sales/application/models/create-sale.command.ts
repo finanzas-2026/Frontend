@@ -13,5 +13,6 @@ export interface CreateSaleCommand {
   installmentsCount?: number;
   graceDays?: number;
   tea?: Rate;
+  firstDueDate?: string;
   details: CreateSaleDetailItem[];
 }

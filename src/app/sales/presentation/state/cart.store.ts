@@ -1,5 +1,6 @@
+import { ACTIVE_STORE_ID } from '../../../shared/application/active-store.token';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Money, PaymentMode, PaymentModes, Rate, RateTypes } from '@shared/domain';
+import { Money, PaymentMode, PaymentModes, Rate } from '@shared/domain';
 import { ToastService } from '@shared/index';
 import { AmortizationSchedule, SimulateScheduleUseCase } from '@financing';
 import { CatalogProduct } from '../../domain/model/catalog-product.entity';
@@ -22,6 +23,8 @@ export interface CartItem {
   providedIn: 'root',
 })
 export class CartStore {
+  private readonly activeStoreId = inject(ACTIVE_STORE_ID);
+  private previewVersion = 0;
   private readonly getCustomersUseCase = inject(GetCustomersUseCase);
   private readonly getProductsUseCase = inject(GetCatalogProductsUseCase);
   private readonly createSaleUseCase = inject(CreateSaleUseCase);
@@ -35,7 +38,6 @@ export class CartStore {
   readonly paymentMode = signal<PaymentMode>(PaymentModes.CONTADO);
 
   readonly installmentsCount = signal<number>(3);
-  readonly rateValue = signal<string>('18.0000000');
   readonly graceDays = signal<number>(0);
   readonly schedulePreview = signal<AmortizationSchedule | null>(null);
 
@@ -72,18 +74,27 @@ export class CartStore {
     if (mode !== PaymentModes.FINANCIADO_MENSUAL || !cust) {
       return true;
     }
-    return cust.allowsMonthlyPayments;
+    return cust.allowsMonthlyPayments && this.items().every((item) => item.product.allowsMonthlyPayments);
   });
 
   readonly canSubmit = computed(() => {
     return (
       this.items().length > 0 &&
       this.selectedCustomer() !== null &&
+      this.activeStoreId() !== null &&
+      this.hasValidTerms() &&
       !this.isCreditExceeded() &&
       this.isMonthlyEligible() &&
       !this.isSubmitting()
     );
   });
+
+  private hasValidTerms(): boolean {
+    const mode = this.paymentMode();
+    if (mode === PaymentModes.CONTADO) return true;
+    return !!this.selectedCustomer()?.terms &&
+      (mode !== PaymentModes.FINANCIADO_CUOTAS || this.schedulePreview() !== null);
+  }
 
   async loadInitialData(): Promise<void> {
     this.isLoading.set(true);
@@ -94,15 +105,15 @@ export class CartStore {
         this.getProductsUseCase.execute(),
       ]);
 
-      if (custResult.isOk()) {
-        this.customers.set(custResult.value);
-        if (custResult.value.length > 0 && !this.selectedCustomer()) {
-          this.selectedCustomer.set(custResult.value[0] ?? null);
-        }
+      if (custResult.isErr() || prodResult.isErr()) {
+        this.errorMessage.set(custResult.isErr() ? custResult.error.message :
+          prodResult.isErr() ? prodResult.error.message : null);
+        return;
       }
-      if (prodResult.isOk()) {
-        this.products.set(prodResult.value);
-      }
+      const selectedId = this.selectedCustomer()?.id;
+      this.customers.set(custResult.value);
+      this.selectedCustomer.set(custResult.value.find((customer) => customer.id === selectedId) ?? null);
+      this.products.set(prodResult.value);
     } catch {
       this.errorMessage.set('Error al cargar catálogo o clientes');
     } finally {
@@ -112,6 +123,7 @@ export class CartStore {
 
   selectCustomer(customer: CustomerCreditInfo | null): void {
     this.selectedCustomer.set(customer);
+    void this.calculateSchedulePreview();
   }
 
   addItem(product: CatalogProduct, qty = 1): void {
@@ -120,13 +132,13 @@ export class CartStore {
 
     if (existing) {
       const newQty = existing.quantity + qty;
-      const subtotal = product.unitPrice.multiply(newQty);
+      const subtotal = this.priceFor(product).multiply(newQty);
       const updated = current.map((i) =>
         i.product.id === product.id ? { product, quantity: newQty, subtotal } : i
       );
       this.items.set(updated);
     } else {
-      const subtotal = product.unitPrice.multiply(qty);
+      const subtotal = this.priceFor(product).multiply(qty);
       this.items.set([...current, { product, quantity: qty, subtotal }]);
     }
 
@@ -143,7 +155,7 @@ export class CartStore {
     const current = this.items();
     const updated = current.map((item) => {
       if (item.product.id !== productId) return item;
-      const subtotal = item.product.unitPrice.multiply(newQty);
+      const subtotal = this.priceFor(item.product).multiply(newQty);
       return { ...item, quantity: newQty, subtotal };
     });
     this.items.set(updated);
@@ -161,23 +173,22 @@ export class CartStore {
 
   setPaymentMode(mode: PaymentMode): void {
     this.paymentMode.set(mode);
-    if (mode === PaymentModes.FINANCIADO_CUOTAS) {
-      void this.calculateSchedulePreview();
-    } else {
-      this.schedulePreview.set(null);
-    }
+    this.items.update((items) => items.map((item) => ({
+      ...item, subtotal: this.priceFor(item.product).multiply(item.quantity),
+    })));
+    void this.calculateSchedulePreview();
+  }
+
+  priceFor(product: CatalogProduct): Money {
+    return this.paymentMode() === PaymentModes.CONTADO ? product.unitPrice : product.creditUnitPrice;
   }
 
   setInstallmentParams(params: {
     installmentsCount?: number;
-    rateValue?: string;
     graceDays?: number;
   }): void {
     if (params.installmentsCount !== undefined) {
       this.installmentsCount.set(params.installmentsCount);
-    }
-    if (params.rateValue !== undefined) {
-      this.rateValue.set(params.rateValue);
     }
     if (params.graceDays !== undefined) {
       this.graceDays.set(params.graceDays);
@@ -188,30 +199,32 @@ export class CartStore {
   }
 
   async calculateSchedulePreview(): Promise<void> {
+    const version = ++this.previewVersion;
+    this.schedulePreview.set(null);
+    const customer = this.selectedCustomer();
+    if (!customer) return;
+    const terms = customer.terms;
     const total = this.totalAmount();
-    if (total.isZero()) {
-      this.schedulePreview.set(null);
-      return;
-    }
+    if (this.paymentMode() !== PaymentModes.FINANCIADO_CUOTAS || total.isZero() || !terms ||
+        this.installmentsCount() > terms.maxMonths) return;
 
-    const rateResult = Rate.fromFraction(this.rateValue());
-    if (rateResult.isErr()) return;
-
-    try {
-      const result = await this.simulateScheduleUseCase.execute({
-        initialCapital: total,
-        rate: rateResult.value,
-        rateType: RateTypes.EFECTIVA,
-        totalInstallments: this.installmentsCount(),
-        graceDays: this.graceDays(),
-      });
-      if (result.isOk()) {
-        this.schedulePreview.set(result.value);
-      } else {
-        this.schedulePreview.set(null);
-      }
-    } catch {
-      this.schedulePreview.set(null);
+    const rate = Rate.fromFraction(terms.rateValue);
+    if (rate.isErr()) return;
+    const result = await this.simulateScheduleUseCase.execute({
+      initialCapital: total,
+      rate: rate.value,
+      rateType: terms.rateType,
+      ratePeriodDays: terms.ratePeriodDays,
+      compoundingDays: terms.compoundingDays ?? undefined,
+      customerId: customer.id,
+      totalInstallments: this.installmentsCount(),
+      graceDays: this.graceDays(),
+    });
+    if (version !== this.previewVersion) return;
+    if (result.isOk()) {
+      this.schedulePreview.set(result.value);
+    } else {
+      this.errorMessage.set(result.error.message);
     }
   }
 
@@ -230,23 +243,21 @@ export class CartStore {
     return true;
   }
 
-  private buildCommand(cust: CustomerCreditInfo, mode: PaymentMode): CreateSaleCommand {
+  private buildCommand(cust: CustomerCreditInfo, mode: PaymentMode, storeId: number): CreateSaleCommand {
     const isCuotas = mode === PaymentModes.FINANCIADO_CUOTAS;
-    const rateResult = Rate.fromFraction(this.rateValue());
+    const preview = this.schedulePreview();
     return {
       customerId: cust.id,
-      // TODO(MULTITENANCY): Reemplazar el storeId fijo por el
-      // establecimiento asociado a la sesión autenticada.
-      // Validar la pertenencia del usuario cuando exista backend real.
-      storeId: 1,
+      storeId,
       paymentMode: mode,
       installmentsCount: isCuotas ? this.installmentsCount() : undefined,
       graceDays: isCuotas ? this.graceDays() : undefined,
-      tea: isCuotas && rateResult.isOk() ? rateResult.value : undefined,
+      tea: isCuotas ? preview?.normalizedRates.tea : undefined,
+      firstDueDate: preview?.installments.find((installment) => !installment.isGracePeriod)?.dueDate,
       details: this.items().map((item) => ({
         productId: item.product.id,
         quantity: item.quantity,
-        unitPrice: item.product.unitPrice,
+        unitPrice: this.priceFor(item.product),
       })),
     };
   }
@@ -280,12 +291,13 @@ export class CartStore {
       return null;
     }
     const mode = this.paymentMode();
-    if (!this.validateSubmission(cust, mode)) return null;
+    const storeId = this.activeStoreId();
+    if (!storeId || !this.canSubmit() || !this.validateSubmission(cust, mode)) return null;
 
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
     try {
-      const cmd = this.buildCommand(cust, mode);
+      const cmd = this.buildCommand(cust, mode, storeId);
       return await this.executeSaleCreation(cmd);
     } finally {
       this.isSubmitting.set(false);
@@ -293,6 +305,7 @@ export class CartStore {
   }
 
   clearCart(): void {
+    this.previewVersion++;
     this.items.set([]);
     this.schedulePreview.set(null);
   }

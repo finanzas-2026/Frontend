@@ -6,6 +6,8 @@ export interface CatalogProductProps {
   sku: string;
   category: string;
   unitPrice: Money;
+  creditUnitPrice?: Money;
+  allowsMonthlyPayments?: boolean;
   stock: number;
 }
 
@@ -15,6 +17,8 @@ export class CatalogProduct implements BaseEntity {
   readonly sku: string;
   readonly category: string;
   readonly unitPrice: Money;
+  readonly creditUnitPrice: Money;
+  readonly allowsMonthlyPayments: boolean;
   readonly stock: number;
 
   constructor(props: CatalogProductProps) {
@@ -23,6 +27,8 @@ export class CatalogProduct implements BaseEntity {
     this.sku = props.sku;
     this.category = props.category;
     this.unitPrice = props.unitPrice;
+    this.creditUnitPrice = props.creditUnitPrice ?? props.unitPrice;
+    this.allowsMonthlyPayments = props.allowsMonthlyPayments ?? true;
     this.stock = props.stock;
   }
 

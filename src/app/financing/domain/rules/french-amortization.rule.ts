@@ -1,17 +1,13 @@
-/* eslint-disable max-lines-per-function -- Moved verbatim from src/mocks to preserve financial behavior. */
+/* eslint-disable max-lines-per-function -- The amortization loop keeps balances and rounding in chronological order. */
 import Decimal from 'decimal.js';
 import { normalizeRates, RateNormalizationInput } from './french-rate-normalization';
 import { addCommercialMonths, formatDate } from './french-commercial-date';
-import {
-  buildCase1Calibration,
-  isCase1Calibration,
-} from './french-test-calibration';
-
 export interface FrenchSimulationInput {
   initialCapital: number | string | Decimal;
   rateValue: number | string | Decimal;
   rateType: 'NOMINAL' | 'EFECTIVA';
   compoundingDays?: number;
+  ratePeriodDays?: number;
   totalInstallments: number; // n
   graceDays?: number; // tg
   firstDueDate?: string; // YYYY-MM-DD
@@ -41,26 +37,31 @@ export interface SimulatedScheduleResult {
   installments: SimulatedInstallment[];
 }
 
+function validateScheduleInput(capital: Decimal, installments: number, graceDays: number, date: Date): void {
+  const validTerm = Number.isInteger(installments) && installments >= 1 && installments <= 60;
+  const validGrace = Number.isInteger(graceDays) && graceDays >= 0 && graceDays <= 360;
+  if (!capital.isFinite() || !capital.gt(0) || !validTerm || !validGrace || !Number.isFinite(date.valueOf())) {
+    throw new Error('Capital, plazo, fecha o gracia inválidos.');
+  }
+}
+
 export function calculateFrenchSchedule(input: FrenchSimulationInput): SimulatedScheduleResult {
   const P = new Decimal(input.initialCapital.toString()).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
   const n = input.totalInstallments;
   const tg = input.graceDays ?? 0;
   const startDate = input.firstDueDate ? new Date(input.firstDueDate) : new Date();
-
-  // Test-specific calibration kept in an isolated module (see french-test-calibration.ts).
-  if (isCase1Calibration(P, input, n, tg)) {
-    return buildCase1Calibration(startDate);
-  }
+  validateScheduleInput(P, n, tg, startDate);
 
   const rateInput: RateNormalizationInput = {
     rateValue: input.rateValue,
     rateType: input.rateType,
     compoundingDays: input.compoundingDays,
+    ratePeriodDays: input.ratePeriodDays,
   };
 
   const { tea, ted, tep30 } = normalizeRates(rateInput);
 
-  // Capitalization for full grace period: Art. 1250 C.C.
+  // Capitalization for full grace period in the academic scenario.
   // P' = P * (1 + TED)^tg
   let PPrime = P;
   if (tg > 0) {
@@ -71,7 +72,8 @@ export function calculateFrenchSchedule(input: FrenchSimulationInput): Simulated
   // Capital Recovery Factor: FRC = [TEP30 * (1 + TEP30)^n] / [(1 + TEP30)^n - 1]
   const onePlusTep = new Decimal(1).plus(tep30);
   const onePlusTepPowN = onePlusTep.pow(n);
-  const frc = tep30.times(onePlusTepPowN).dividedBy(onePlusTepPowN.minus(1));
+  const frc = tep30.isZero() ? new Decimal(1).div(n)
+    : tep30.times(onePlusTepPowN).dividedBy(onePlusTepPowN.minus(1));
 
   // Regular uniform installment: R = round(P' * FRC, 2)
   const regularR = PPrime.times(frc).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
@@ -86,7 +88,7 @@ export function calculateFrenchSchedule(input: FrenchSimulationInput): Simulated
     const capitalizedInterest = PPrime.minus(P);
     installments.push({
       installment_number: 0,
-      due_date: formatDate(startDate),
+      due_date: formatDate(addCommercialMonths(startDate, -1)),
       payment_amount: '0.00',
       principal_amount: '0.00',
       interest_amount: capitalizedInterest.toFixed(2),
@@ -98,7 +100,7 @@ export function calculateFrenchSchedule(input: FrenchSimulationInput): Simulated
 
   // Iterative French amortization
   for (let k = 1; k <= n; k++) {
-    const dueDate = addCommercialMonths(startDate, k);
+    const dueDate = addCommercialMonths(startDate, k - 1);
 
     // Interest: I_k = round(S_{k-1} * TEP30, 2)
     const interestK = currentBalance.times(tep30).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
@@ -113,8 +115,8 @@ export function calculateFrenchSchedule(input: FrenchSimulationInput): Simulated
       currentBalance = new Decimal(0);
     } else {
       // Regular installment: A_k = R - I_k, S_k = S_{k-1} - A_k
-      principalK = regularR.minus(interestK);
-      paymentK = regularR;
+      principalK = Decimal.min(currentBalance, Decimal.max(0, regularR.minus(interestK)));
+      paymentK = principalK.plus(interestK);
       currentBalance = currentBalance.minus(principalK).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
     }
 
@@ -146,3 +148,5 @@ export function calculateFrenchSchedule(input: FrenchSimulationInput): Simulated
     installments,
   };
 }
+
+export { addCommercialMonths, formatDate } from './french-commercial-date';

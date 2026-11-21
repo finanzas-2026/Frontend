@@ -13,6 +13,7 @@ export const createSaleSchema = z.object({
   installments_count: z.number().int().positive().optional(),
   grace_days: z.number().int().nonnegative().optional(),
   tea: z.string().optional(),
+  first_due_date: z.iso.date().optional(),
   details: z.array(createSaleDetailSchema).min(1, 'La venta debe contener al menos un detalle'),
 });
 
@@ -49,6 +50,11 @@ export const customerCreditInfoSchema = z.object({
   credit_limit: z.string(),
   current_debt: z.string(),
   allows_monthly_payments: z.boolean(),
+  max_credit_months: z.number().int().positive().optional(),
+  compensatory_rate_type: z.enum(['NOMINAL', 'EFECTIVA']).optional(),
+  compensatory_rate_value: z.string().optional(),
+  compensatory_rate_period_days: z.number().optional(),
+  compensatory_capitalization_days: z.number().nullable().optional(),
 });
 
 export const catalogProductSchema = z.object({
@@ -57,5 +63,7 @@ export const catalogProductSchema = z.object({
   sku: z.string(),
   category: z.string(),
   unit_price: z.string(),
+  credit_unit_price: z.string().optional(),
+  allows_monthly_payments: z.boolean().optional(),
   stock: z.number(),
 });

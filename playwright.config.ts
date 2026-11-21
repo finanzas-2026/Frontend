@@ -2,10 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env['CI'],
-  retries: process.env['CI'] ? 2 : 0,
-  workers: process.env['CI'] ? 1 : undefined,
+  retries: 0,
+  workers: 1,
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:4200',
@@ -17,10 +17,17 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'npx ng serve --port 4200',
-    url: 'http://localhost:4200',
-    reuseExistingServer: !process.env['CI'],
-    timeout: 120 * 1000,
-  },
+  webServer: [
+    {
+      command: 'npm run api',
+      url: 'http://localhost:8080/health',
+      reuseExistingServer: false,
+    },
+    {
+      command: 'npm start -- --port 4200',
+      url: 'http://localhost:4200',
+      reuseExistingServer: false,
+      timeout: 120 * 1000,
+    },
+  ],
 });

@@ -11,5 +11,6 @@ export interface CreateSaleRequestDto {
   installments_count?: number;
   grace_days?: number;
   tea?: string;
+  first_due_date?: string;
   details: CreateSaleDetailRequestDto[];
 }

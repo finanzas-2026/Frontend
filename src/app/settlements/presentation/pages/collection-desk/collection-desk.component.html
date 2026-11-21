@@ -1,6 +1,6 @@
 <app-page-header
   title="Ventanilla de Cobranza y Liquidación Legal"
-  subtitle="Cálculo exacto de mora, aplicación legal del Art. 1257 C.C. y emisión de comprobantes"
+  subtitle="Cotización de mora, imputación del pago y emisión de comprobantes"
 />
 
 @if (store.isLoading()) {
@@ -50,7 +50,7 @@
             <span class="kpi-value">{{ quote.compensatoryInterest.toFormatted() }}</span>
           </div>
           <div class="kpi-box">
-            <span class="kpi-label">Mora (Art. 1242/1250)</span>
+            <span class="kpi-label">Interés Moratorio</span>
             <span class="kpi-value text-danger">{{ quote.moratoriumInterest.toFormatted() }}</span>
           </div>
           <div class="kpi-box kpi-highlight">
@@ -62,9 +62,9 @@
         <!-- Imputation Breakdown under Art. 1257 C.C. -->
         @if (store.imputationPreview(); as imp) {
           <div class="imputation-card">
-            <h4 class="imputation-title">Prelación Legal de Cobro (Art. 1257 Código Civil)</h4>
+            <h4 class="imputation-title">Imputación del Cobro</h4>
             <p class="imputation-desc">
-              Imputación imperativa del pago: 1° Gastos/Mora $\rightarrow$ 2° Compensatorio $\rightarrow$ 3° Capital.
+              Orden de la demo: interés moratorio, interés compensatorio y capital.
             </p>
             <div class="imputation-steps">
               <div class="imputation-step-box">

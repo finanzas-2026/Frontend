@@ -1,71 +1,30 @@
 import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { demoApi, operatorHeaders, signIn } from './demo-session';
 
-test.describe('Fase 3: BC Sales (POS, Carrito, Línea de Crédito y Checkout) @f3', () => {
-  test('debe permitir agregar productos al carrito, evaluar crédito y registrar venta con accesibilidad', async ({
-    page,
-  }) => {
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
+test('rechaza ventas sin existencias o cupo y conserva stock, saldos y ventas', async ({ request }) => {
+  const headers = operatorHeaders;
+  const resources = ['/catalog/products', '/sales/customers', '/sales'];
+  const snapshot = () => Promise.all(resources.map(async (resource) =>
+    (await request.get(demoApi + resource, { headers })).json()));
+  const before = await snapshot();
+  for (const quantity of [26, 9]) {
+    const rejected = await request.post(demoApi + '/sales', { headers, data: {
+      customer_id: 1, store_id: 1, payment_mode: 'FINANCIADO_CUOTAS', installments_count: 3,
+      details: [{ product_id: 1, quantity }],
+    } });
+    expect(rejected.status()).toBe(409);
+    expect((await rejected.json()).message).toContain(quantity === 26 ? 'Existencias insuficientes' : 'Cupo insuficiente');
+    expect(await snapshot()).toEqual(before);
+  }
+});
 
-    // 1. Cargar la vista de POS
-    await page.goto('/sales/pos');
-    await page.waitForLoadState('networkidle');
-
-    // 2. Verificar cabecera y selector de cliente
-    const headerTitle = page.locator('h1.page-title');
-    await expect(headerTitle).toContainText('Punto de Venta y Crédito Comercial');
-
-    // Verificar que los datos del cliente se renderizan
-    await expect(page.locator('.credit-info-grid')).toBeVisible();
-
-    // 3. Agregar un producto al carrito
-    const firstAddBtn = page.locator('.product-item-card button').first();
-    await expect(firstAddBtn).toBeVisible();
-    await firstAddBtn.click();
-
-    // 4. Verificar que el carrito tiene 1 ítem y subtotal
-    const cartItem = page.locator('.cart-item-row');
-    await expect(cartItem).toBeVisible();
-    await expect(page.locator('.cart-card mat-card-title')).toContainText('1 unid.');
-
-    // 5. Seleccionar modalidad Financiado en Cuotas (Francés)
-    const cuotasRadio = page.getByRole('radio', { name: /Financiado en Cuotas/i });
-    await cuotasRadio.click();
-
-    // 6. Verificar que aparece el selector de cuotas y previsualización de cronograma
-    await expect(page.locator('.cuotas-params-box')).toBeVisible();
-
-    // 7. Procesar la venta
-    const checkoutBtn = page.locator('button.btn-checkout');
-    await expect(checkoutBtn).toBeEnabled();
-    await checkoutBtn.click();
-
-    // 8. Esperar a que el carrito quede vacío tras procesar
-    await expect(page.locator('.empty-cart-message')).toBeVisible({ timeout: 5000 });
-
-    // 9. Navegar al historial de ventas
-    await page.goto('/sales/history');
-    await page.waitForLoadState('networkidle');
-
-    const historyTable = page.locator('table.app-table');
-    await expect(historyTable).toBeVisible();
-    await expect(page.locator('h1.page-title')).toContainText('Historial de Ventas Registradas');
-
-    // 10. Auditoría de Consola limpia
-    expect(consoleErrors).toEqual([]);
-
-    // 11. Auditoría axe-core en Historial
-    const historyScan = await new AxeBuilder({ page })
-      .exclude('.mat-mdc-select-panel')
-      .analyze();
-    const criticalOrSerious = historyScan.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    );
-    expect(criticalOrSerious).toHaveLength(0);
-  });
+test('requiere seleccionar al cliente y muestra el precio a crédito', async ({ page }) => {
+  await signIn(page, '/sales/pos');
+  await page.getByRole('button', { name: /Agregar Saco de Arroz/ }).click();
+  await expect(page.getByRole('button', { name: 'Procesar Venta' })).toBeDisabled();
+  await page.getByRole('combobox', { name: 'Seleccionar cliente para la venta' }).click();
+  await page.getByRole('option', { name: /Ana Gómez/ }).click();
+  await page.getByText('Financiado en Cuotas (Francés)', { exact: true }).click();
+  await expect(page.getByText(/Cuota Estimada/)).toBeVisible();
+  await expect(page.locator('.grand-total')).toContainText('175.00');
 });

@@ -18,6 +18,7 @@ export interface CreateSaleParams {
   readonly installmentsCount?: number;
   readonly graceDays?: number;
   readonly tea?: Rate;
+  readonly firstDueDate?: string;
   readonly details: CreateSaleDetailParams[];
 }
 

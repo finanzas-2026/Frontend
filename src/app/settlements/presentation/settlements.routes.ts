@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { UserRoles } from '../../iam/domain/constants/user-roles.constant';
+import { roleGuard } from '../../iam/presentation/guards/role.guard';
 
 export const SETTLEMENTS_ROUTES: Routes = [
   {
@@ -8,6 +10,7 @@ export const SETTLEMENTS_ROUTES: Routes = [
   },
   {
     path: 'desk',
+    canActivate: [roleGuard(UserRoles.STORE_ADMIN, UserRoles.SUPER_ADMIN)],
     loadComponent: () =>
       import('./pages/collection-desk/collection-desk.component').then(
         (m) => m.CollectionDeskPageComponent
@@ -15,6 +18,7 @@ export const SETTLEMENTS_ROUTES: Routes = [
   },
   {
     path: 'list',
+    canActivate: [roleGuard(UserRoles.STORE_ADMIN, UserRoles.SUPER_ADMIN)],
     loadComponent: () =>
       import('./pages/settlements-list/settlements-list.component').then(
         (m) => m.SettlementsListPageComponent
@@ -22,6 +26,7 @@ export const SETTLEMENTS_ROUTES: Routes = [
   },
   {
     path: 'portal',
+    canActivate: [roleGuard(UserRoles.CUSTOMER)],
     loadComponent: () =>
       import('./pages/customer-portal/customer-portal.component').then(
         (m) => m.CustomerPortalPageComponent
