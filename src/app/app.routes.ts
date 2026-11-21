@@ -35,6 +35,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'credit',
+        canActivate: [roleGuard(UserRoles.STORE_ADMIN, UserRoles.SUPER_ADMIN)],
+        loadChildren: () =>
+          import('./credit/presentation/credit.routes').then(
+            (m) => m.CREDIT_ROUTES
+          ),
+      },
+      {
         path: 'financing',
         loadChildren: () => import('./financing/presentation/financing.routes').then((m) => m.financingRoutes),
       },

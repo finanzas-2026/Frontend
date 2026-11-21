@@ -1,0 +1,97 @@
+:host {
+  --credit-primary: #0369a1;
+  --credit-primary-dark: #075985;
+  --credit-primary-soft: #e0f2fe;
+  --credit-text: #0f172a;
+  --credit-muted: #475569;
+  --credit-border: #e2e8f0;
+  --credit-danger: #b91c1c;
+  --credit-danger-soft: #fef2f2;
+
+  display: block;
+}
+
+.page-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.65rem;
+  background: var(--credit-danger-soft);
+  color: var(--credit-danger);
+  font-size: 0.85rem;
+}
+
+.page-alert span {
+  flex: 1;
+}
+
+.filters-card {
+  border-color: var(--credit-border);
+  background: #ffffff;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-field {
+  width: 100%;
+}
+
+.results-summary {
+  margin: 1rem 0;
+  color: var(--credit-muted);
+  font-size: 0.85rem;
+}
+
+.results-summary strong {
+  color: var(--credit-text);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--credit-border);
+  border-radius: 0.65rem;
+  background: #ffffff;
+}
+
+.credit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.credit-table th,
+.credit-table td {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--credit-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.credit-table th {
+  background: var(--credit-primary-soft);
+  color: var(--credit-text);
+  font-weight: 600;
+}
+
+.credit-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+@media (max-width: 700px) {
+  .actions-cell {
+    flex-direction: column;
+  }
+}
