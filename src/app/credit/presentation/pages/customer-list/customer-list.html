@@ -1,0 +1,112 @@
+<app-page-header
+  title="Fichas crediticias"
+  subtitle="Administra los perfiles crediticios y condiciones pactadas de los clientes de tu tienda."
+>
+  <a mat-flat-button color="primary" routerLink="/credit/customers/new">
+    <mat-icon aria-hidden="true">add</mat-icon>
+    Registrar cliente
+  </a>
+</app-page-header>
+
+@if (!hasStore()) {
+  <app-empty-state
+    icon="storefront"
+    title="Sin establecimiento asociado"
+    message="La sesión actual no tiene una tienda asignada. Inicia sesión con una cuenta administradora de tienda para gestionar las fichas crediticias."
+  />
+} @else if (store.isLoading()) {
+  <app-loading-state message="Cargando fichas crediticias..." />
+} @else {
+  @if (store.error()) {
+    <div class="page-alert" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <span>{{ store.error() }}</span>
+      <button mat-stroked-button type="button" (click)="loadCustomers()">
+        Reintentar
+      </button>
+    </div>
+  }
+
+  <mat-card class="filters-card" appearance="outlined">
+    <mat-card-content>
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Buscar cliente</mat-label>
+          <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+          <input
+            matInput
+            type="search"
+            [value]="searchQuery()"
+            (input)="onSearch($event)"
+            placeholder="Identificador o teléfono"
+          />
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="results-summary" aria-live="polite">
+    <span>
+      Mostrando <strong>{{ filteredCustomers().length }}</strong> de
+      <strong>{{ store.customers().length }}</strong> clientes
+    </span>
+  </div>
+
+  @if (filteredCustomers().length === 0) {
+    @if (store.customers().length === 0) {
+      <app-empty-state
+        icon="people"
+        title="Sin fichas crediticias"
+        message="Todavía no hay clientes registrados para esta tienda."
+      >
+        <a mat-flat-button color="primary" routerLink="/credit/customers/new">
+          Registrar primer cliente
+        </a>
+      </app-empty-state>
+    } @else {
+      <app-empty-state
+        icon="search_off"
+        title="Sin resultados"
+        message="Ningún cliente coincide con la búsqueda."
+      />
+    }
+  } @else {
+    <div class="table-wrapper">
+      <table class="credit-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Teléfono</th>
+            <th>Límite</th>
+            <th>Moneda</th>
+            <th>Plazo máx.</th>
+            <th>Corte</th>
+            <th>Pago</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (customer of filteredCustomers(); track customer.id) {
+            <tr>
+              <td>#{{ customer.id }}</td>
+              <td>{{ customer.phoneNumber }}</td>
+              <td>{{ customer.creditLimit | number: '1.2-2' }}</td>
+              <td>{{ customer.creditCurrency }}</td>
+              <td>{{ customer.maxCreditMonths }}</td>
+              <td>{{ customer.cutoffDay }}</td>
+              <td>{{ customer.paymentDueDay }}</td>
+              <td class="actions-cell">
+                <button mat-stroked-button type="button" (click)="onView(customer)">
+                  Ver
+                </button>
+                <button mat-flat-button color="primary" type="button" (click)="onEdit(customer)">
+                  Editar
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

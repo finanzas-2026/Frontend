@@ -1,0 +1,357 @@
+<app-page-header [title]="pageTitle()" [subtitle]="pageSubtitle()">
+  <a mat-stroked-button routerLink="/credit/customers">
+    <mat-icon aria-hidden="true">arrow_back</mat-icon>
+    Volver al listado
+  </a>
+</app-page-header>
+
+@if (!hasStore()) {
+  <app-empty-state
+    icon="storefront"
+    title="Sin establecimiento asociado"
+    message="La sesión actual no tiene una tienda asignada. No es posible administrar fichas crediticias sin un establecimiento."
+  />
+} @else if (loadError()) {
+  <mat-card class="state-card" appearance="outlined">
+    <mat-card-content>
+      <mat-icon class="state-icon" aria-hidden="true">error_outline</mat-icon>
+      <h2>No se pudo cargar la ficha crediticia</h2>
+      <p>{{ loadError() }}</p>
+      <a mat-flat-button color="primary" routerLink="/credit/customers">
+        Volver al listado
+      </a>
+    </mat-card-content>
+  </mat-card>
+} @else if (isEditMode() && store.isLoading() && !loadedCustomer()) {
+  <app-loading-state message="Cargando ficha crediticia..." />
+} @else {
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    novalidate
+    [attr.aria-busy]="store.isSaving()"
+  >
+    <mat-card class="form-card" appearance="outlined">
+      <mat-card-content>
+        <section class="form-section">
+          <div class="section-heading">
+            <h2>Identificación y contacto</h2>
+            <p>Datos del cliente asociado a la ficha crediticia.</p>
+          </div>
+
+          <div class="field-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Usuario asociado (ID)</mat-label>
+              <input
+                matInput
+                formControlName="userId"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                aria-required="true"
+              />
+              @if (form.controls.userId.touched && form.controls.userId.hasError('required')) {
+                <mat-error>El usuario es obligatorio.</mat-error>
+              } @else if (form.controls.userId.touched && form.controls.userId.hasError('min')) {
+                <mat-error>El identificador debe ser mayor que cero.</mat-error>
+              } @else if (form.controls.userId.touched && form.controls.userId.hasError('integer')) {
+                <mat-error>El identificador debe ser un entero.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-span-2">
+              <mat-label>Dirección domiciliaria</mat-label>
+              <input
+                matInput
+                formControlName="homeAddress"
+                placeholder="Ej. Calle Las Flores 210"
+                aria-required="true"
+              />
+              @if (form.controls.homeAddress.touched && form.controls.homeAddress.hasError('required')) {
+                <mat-error>La dirección es obligatoria.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Número telefónico</mat-label>
+              <input
+                matInput
+                formControlName="phoneNumber"
+                placeholder="Ej. 987654321"
+                aria-required="true"
+              />
+              @if (form.controls.phoneNumber.touched && form.controls.phoneNumber.hasError('required')) {
+                <mat-error>El teléfono es obligatorio.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading">
+            <h2>Condiciones de crédito</h2>
+            <p>Límite, plazo y moneda del crédito.</p>
+          </div>
+
+          <div class="field-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Límite de crédito</mat-label>
+              <input
+                matInput
+                formControlName="creditLimit"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                aria-required="true"
+              />
+              @if (form.controls.creditLimit.touched && form.controls.creditLimit.hasError('required')) {
+                <mat-error>El límite es obligatorio.</mat-error>
+              } @else if (form.controls.creditLimit.touched && form.controls.creditLimit.hasError('min')) {
+                <mat-error>El límite no puede ser negativo.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Plazo máximo (meses)</mat-label>
+              <input
+                matInput
+                formControlName="maxCreditMonths"
+                type="number"
+                min="1"
+                max="36"
+                step="1"
+                inputmode="numeric"
+                aria-required="true"
+              />
+              @if (form.controls.maxCreditMonths.touched && form.controls.maxCreditMonths.hasError('required')) {
+                <mat-error>El plazo es obligatorio.</mat-error>
+              } @else if (form.controls.maxCreditMonths.touched && (form.controls.maxCreditMonths.hasError('min') || form.controls.maxCreditMonths.hasError('max'))) {
+                <mat-error>El plazo debe estar entre 1 y 36 meses.</mat-error>
+              } @else if (form.controls.maxCreditMonths.touched && form.controls.maxCreditMonths.hasError('integer')) {
+                <mat-error>El plazo debe ser un entero.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Moneda</mat-label>
+              <mat-select formControlName="creditCurrency" aria-required="true">
+                @for (option of currencyOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading">
+            <h2>Fechas de corte y pago</h2>
+            <p>Días comerciales del ciclo (1 a 30).</p>
+          </div>
+
+          <div class="field-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Día de corte</mat-label>
+              <input
+                matInput
+                formControlName="cutoffDay"
+                type="number"
+                min="1"
+                max="30"
+                step="1"
+                inputmode="numeric"
+                aria-required="true"
+              />
+              @if (form.controls.cutoffDay.touched && form.controls.cutoffDay.hasError('required')) {
+                <mat-error>El día de corte es obligatorio.</mat-error>
+              } @else if (form.controls.cutoffDay.touched && (form.controls.cutoffDay.hasError('min') || form.controls.cutoffDay.hasError('max'))) {
+                <mat-error>El día debe estar entre 1 y 30.</mat-error>
+              } @else if (form.controls.cutoffDay.touched && form.controls.cutoffDay.hasError('integer')) {
+                <mat-error>El día debe ser un entero.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Día de pago</mat-label>
+              <input
+                matInput
+                formControlName="paymentDueDay"
+                type="number"
+                min="1"
+                max="30"
+                step="1"
+                inputmode="numeric"
+                aria-required="true"
+              />
+              @if (form.controls.paymentDueDay.touched && form.controls.paymentDueDay.hasError('required')) {
+                <mat-error>El día de pago es obligatorio.</mat-error>
+              } @else if (form.controls.paymentDueDay.touched && (form.controls.paymentDueDay.hasError('min') || form.controls.paymentDueDay.hasError('max'))) {
+                <mat-error>El día debe estar entre 1 y 30.</mat-error>
+              } @else if (form.controls.paymentDueDay.touched && form.controls.paymentDueDay.hasError('integer')) {
+                <mat-error>El día debe ser un entero.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading">
+            <h2>Tasa compensatoria</h2>
+            <p>Condiciones originalmente pactadas para el interés compensatorio.</p>
+          </div>
+
+          <div class="field-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Modalidad</mat-label>
+              <mat-select
+                formControlName="compensatoryRateType"
+                (selectionChange)="onCompensatoryTypeChange($event.value)"
+                aria-required="true"
+              >
+                @for (type of rateTypeOptions; track type) {
+                  <mat-option [value]="type">{{ type }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Período de referencia (días)</mat-label>
+              <mat-select formControlName="compensatoryRatePeriodDays" aria-required="true">
+                @for (option of periodOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Valor de la tasa (%)</mat-label>
+              <input
+                matInput
+                formControlName="compensatoryRateValue"
+                type="number"
+                min="0"
+                step="0.001"
+                inputmode="decimal"
+                aria-required="true"
+              />
+              @if (form.controls.compensatoryRateValue.touched && form.controls.compensatoryRateValue.hasError('required')) {
+                <mat-error>El valor es obligatorio.</mat-error>
+              } @else if (form.controls.compensatoryRateValue.touched && form.controls.compensatoryRateValue.hasError('min')) {
+                <mat-error>La tasa no puede ser negativa.</mat-error>
+              }
+            </mat-form-field>
+
+            @if (form.controls.compensatoryRateType.value === 'NOMINAL') {
+              <mat-form-field appearance="outline">
+                <mat-label>Frecuencia de capitalización (días)</mat-label>
+                <mat-select formControlName="compensatoryCapitalizationDays" aria-required="true">
+                  @for (option of periodOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading">
+            <h2>Tasa moratoria</h2>
+            <p>Condiciones originalmente pactadas para el interés moratorio.</p>
+          </div>
+
+          <div class="field-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Modalidad</mat-label>
+              <mat-select
+                formControlName="penaltyRateType"
+                (selectionChange)="onPenaltyTypeChange($event.value)"
+                aria-required="true"
+              >
+                @for (type of rateTypeOptions; track type) {
+                  <mat-option [value]="type">{{ type }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Período de referencia (días)</mat-label>
+              <mat-select formControlName="penaltyRatePeriodDays" aria-required="true">
+                @for (option of periodOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Valor de la tasa (%)</mat-label>
+              <input
+                matInput
+                formControlName="penaltyRateValue"
+                type="number"
+                min="0"
+                step="0.001"
+                inputmode="decimal"
+                aria-required="true"
+              />
+              @if (form.controls.penaltyRateValue.touched && form.controls.penaltyRateValue.hasError('required')) {
+                <mat-error>El valor es obligatorio.</mat-error>
+              } @else if (form.controls.penaltyRateValue.touched && form.controls.penaltyRateValue.hasError('min')) {
+                <mat-error>La tasa no puede ser negativa.</mat-error>
+              }
+            </mat-form-field>
+
+            @if (form.controls.penaltyRateType.value === 'NOMINAL') {
+              <mat-form-field appearance="outline">
+                <mat-label>Frecuencia de capitalización (días)</mat-label>
+                <mat-select formControlName="penaltyCapitalizationDays" aria-required="true">
+                  @for (option of periodOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+          </div>
+        </section>
+
+        @if (isEditMode() && loadedCustomer(); as customer) {
+          <section class="form-section">
+            <div class="section-heading">
+              <h2>Saldo a favor</h2>
+              <p>Información de solo lectura.</p>
+            </div>
+            <p class="readonly-value">
+              Saldo a favor actual: {{ customer.favourBalance | number: '1.2-2' }}
+            </p>
+          </section>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    @if (submitError()) {
+      <div class="page-alert" role="alert">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ submitError() }}</span>
+      </div>
+    }
+
+    <div class="form-actions">
+      <a mat-stroked-button routerLink="/credit/customers">Cancelar</a>
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="store.isLoading() || store.isSaving()"
+      >
+        @if (store.isSaving()) {
+          <mat-spinner diameter="20" aria-label="Guardando ficha crediticia" />
+          <span>Guardando...</span>
+        } @else {
+          <span>{{ submitLabel() }}</span>
+        }
+      </button>
+    </div>
+  </form>
+}
