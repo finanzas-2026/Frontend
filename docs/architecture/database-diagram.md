@@ -85,8 +85,12 @@ package "BC 03 - Credit Management" #FFF3D9 {
         cutoff_day : integer <<NN>>
         payment_due_day : integer <<NN>>
         compensatory_rate_type : varchar(10) <<NN>>
+        compensatory_rate_period_days : integer <<NN>>
+        compensatory_capitalization_days : integer
         compensatory_rate_value : decimal(12,7) <<NN>>
         penalty_rate_type : varchar(10) <<NN>>
+        penalty_rate_period_days : integer <<NN>>
+        penalty_capitalization_days : integer
         penalty_rate_value : decimal(12,7) <<NN>>
         credit_currency : varchar(3) <<NN>>
         favour_balance : decimal(12,2) <<NN>>
