@@ -1,12 +1,13 @@
+import { businessLabel } from '../../../../shared/presentation/business-labels';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import {
   DataTableColumn,
   DataTableComponent,
   LoadingStateComponent,
   PageHeaderComponent,
+  UiIconComponent,
 } from '@shared/index';
 import { Sale } from '../../../domain/model/sale.entity';
 import { ListSalesUseCase } from '../../../application/use-cases/list-sales.use-case';
@@ -16,17 +17,19 @@ import { ListSalesUseCase } from '../../../application/use-cases/list-sales.use-
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
     MatButtonModule,
     PageHeaderComponent,
     DataTableComponent,
     LoadingStateComponent,
+    UiIconComponent,
   ],
   templateUrl: './sales-history.component.html',
   styleUrl: './sales-history.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SalesHistoryPageComponent implements OnInit {
+  readonly businessLabel = businessLabel;
+
   private readonly listSalesUseCase = inject(ListSalesUseCase);
 
   readonly isLoading = signal<boolean>(false);
@@ -60,9 +63,9 @@ export class SalesHistoryPageComponent implements OnInit {
       id: sale.id,
       code: sale.code,
       customerName: sale.customerName,
-      paymentMode: sale.paymentMode,
+      paymentMode: businessLabel(sale.paymentMode),
       formattedTotal: sale.totalAmount.toFormatted(),
-      status: sale.status,
+      status: businessLabel(sale.status),
       rawSale: sale,
     }));
   }

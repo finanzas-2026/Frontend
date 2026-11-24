@@ -1,0 +1,54 @@
+<app-page-header
+  title="Tiendas"
+  subtitle="Administra los establecimientos y sus cuentas de tienda."
+>
+  <a mat-flat-button color="primary" routerLink="/stores/new"><app-ui-icon name="add" [size]="16" aria-hidden="true" /> Crear tienda</a>
+</app-page-header>
+
+@if (store.error()) {
+  <div class="page-alert" role="alert">
+    <span>{{ store.error() }}</span>
+    <button mat-stroked-button type="button" (click)="loadStores()"><app-ui-icon name="arrow-right" [size]="16" aria-hidden="true" /> Reintentar</button>
+  </div>
+}
+
+@if (store.isLoading()) {
+  <app-loading-state message="Cargando tiendas..." />
+} @else if (store.tenants().length === 0) {
+  <app-empty-state
+    icon="store"
+    title="No hay tiendas"
+    message="Crea una tienda para habilitar su cuenta administradora."
+  >
+    <a mat-flat-button color="primary" routerLink="/stores/new"><app-ui-icon name="add" [size]="16" aria-hidden="true" /> Crear primera tienda</a>
+  </app-empty-state>
+} @else {
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <div class="table-wrapper">
+        <table class="app-table-style credit-table">
+          <thead>
+            <tr><th>Nombre</th><th>RUC</th><th>Dirección</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
+            @for (tenant of store.tenants(); track tenant.id) {
+              <tr>
+                <td>{{ tenant.businessName }}</td>
+                <td>{{ tenant.taxId }}</td>
+                <td>{{ tenant.address }}</td>
+                <td>{{ tenant.phoneNumber || '—' }}</td>
+                <td>{{ statusLabel(tenant.status) }}</td>
+                <td class="actions-cell">
+                  <a mat-stroked-button [routerLink]="['/stores', tenant.id, 'edit']"><app-ui-icon name="edit" [size]="16" aria-hidden="true" /> Editar</a>
+                  @if (tenant.status === 'ACTIVE') {
+                    <button mat-button type="button" (click)="deactivate(tenant)">Desactivar</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+}

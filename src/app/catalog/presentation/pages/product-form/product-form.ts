@@ -17,7 +17,6 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -28,6 +27,7 @@ import {
   LoadingStateComponent,
   PageHeaderComponent,
   ToastService,
+  UiIconComponent,
 } from '@shared/index';
 import { AuthStore } from '../../../../iam/application/stores/auth.store';
 import { ProductStore } from '../../../application/stores/product.store';
@@ -37,6 +37,7 @@ import {
 } from '../../../domain/constants/product-status.constant';
 import { UnitOfMeasure, UnitOfMeasures } from '../../../domain/enums/unit-of-measure.enum';
 import { Product } from '../../../domain/model/product.entity';
+import { formatUnit } from '../../utils/unit-label';
 
 const integerValidator: ValidatorFn = (
   control: AbstractControl,
@@ -58,7 +59,6 @@ const integerValidator: ValidatorFn = (
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
@@ -67,6 +67,7 @@ const integerValidator: ValidatorFn = (
     EmptyStateComponent,
     LoadingStateComponent,
     PageHeaderComponent,
+    UiIconComponent,
   ],
   templateUrl: './product-form.html',
   styleUrl: './product-form.css',
@@ -80,10 +81,10 @@ export class ProductForm implements OnInit {
   private readonly authStore = inject(AuthStore);
   readonly store = inject(ProductStore);
 
-  readonly units = Object.values(UnitOfMeasures);
+  readonly units = Object.values(UnitOfMeasures).map((value) => ({ value, label: formatUnit(value) }));
   readonly statusOptions = [
-    { value: ProductStatuses.ACTIVE, label: 'Activo' },
-    { value: ProductStatuses.INACTIVE, label: 'Inactivo' },
+    { value: ProductStatuses.AVAILABLE, label: 'Disponible' },
+    { value: ProductStatuses.DISCONTINUED, label: 'Descontinuado' },
   ] as const;
   readonly productId = signal<number | null>(null);
   readonly isEditMode = signal(false);
@@ -110,19 +111,19 @@ export class ProductForm implements OnInit {
     brand: [''],
     supplier: [''],
     unitOfMeasure: [
-      UnitOfMeasures.SACO as UnitOfMeasure,
+      UnitOfMeasures.BAG as UnitOfMeasure,
       [Validators.required],
     ],
     imageUrl: [''],
     cashPrice: [0, [Validators.required, Validators.min(0)]],
     creditListPrice: [0, [Validators.required, Validators.min(0)]],
-    allowsMonthlyPayments: [false],
+    allowsInstallments: [true],
     currentStock: [
       0,
       [Validators.required, Validators.min(0), integerValidator],
     ],
     minStock: [0, [Validators.required, Validators.min(0), integerValidator]],
-    status: [ProductStatuses.ACTIVE as ProductStatus, [Validators.required]],
+    status: [ProductStatuses.AVAILABLE as ProductStatus, [Validators.required]],
   });
 
   ngOnInit(): void {
@@ -188,10 +189,12 @@ export class ProductForm implements OnInit {
         imageUrl: product.imageUrl ?? '',
         cashPrice: product.cashPrice,
         creditListPrice: product.creditListPrice,
-        allowsMonthlyPayments: product.allowsMonthlyPayments,
+        allowsInstallments: product.allowsInstallments,
         currentStock: product.currentStock,
         minStock: product.minStock,
-        status: product.status,
+        status: product.status === ProductStatuses.DISCONTINUED
+          ? ProductStatuses.DISCONTINUED
+          : ProductStatuses.AVAILABLE,
       });
     } catch {
       this.loadError.set(
@@ -205,7 +208,7 @@ export class ProductForm implements OnInit {
     const current = this.loadedProduct();
 
     return {
-      id: this.productId() ?? Date.now(),
+      id: this.productId() ?? 0,
       storeId: current?.storeId ?? this.authStore.currentStoreId() ?? 0,
       name: value.name.trim(),
       description: optionalText(value.description),
@@ -215,10 +218,12 @@ export class ProductForm implements OnInit {
       imageUrl: optionalText(value.imageUrl),
       cashPrice: Number(value.cashPrice),
       creditListPrice: Number(value.creditListPrice),
-      allowsMonthlyPayments: value.allowsMonthlyPayments,
+      allowsInstallments: value.allowsInstallments,
       currentStock: Number(value.currentStock),
       minStock: Number(value.minStock),
-      status: value.status,
+      status: Number(value.currentStock) === 0 && value.status === ProductStatuses.AVAILABLE
+        ? ProductStatuses.OUT_OF_STOCK
+        : value.status,
     };
   }
 }

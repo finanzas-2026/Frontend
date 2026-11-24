@@ -3,18 +3,18 @@
   subtitle="Consulta las existencias del establecimiento y detecta productos que requieren reposición."
 >
   <a mat-stroked-button routerLink="/catalog/products">
-    <mat-icon aria-hidden="true">arrow_back</mat-icon>
+    <app-ui-icon name="arrow-left" aria-hidden="true" />
     Volver al catálogo
   </a>
   <a mat-flat-button color="primary" routerLink="/catalog/products/new">
-    <mat-icon aria-hidden="true">add</mat-icon>
+    <app-ui-icon name="add" aria-hidden="true" />
     Nuevo producto
   </a>
 </app-page-header>
 
 @if (!hasStore()) {
   <app-empty-state
-    icon="storefront"
+    icon="store"
     title="Sin establecimiento asociado"
     message="La sesión actual no tiene una tienda asignada. No es posible consultar el inventario sin un establecimiento."
   />
@@ -23,7 +23,7 @@
 } @else {
   @if (store.error()) {
     <div class="page-alert" role="alert">
-      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <app-ui-icon name="error" aria-hidden="true" />
       <span>{{ store.error() }}</span>
       <button mat-stroked-button type="button" (click)="loadInventory()">
         Reintentar
@@ -35,7 +35,7 @@
     <mat-card class="metric-card" appearance="outlined">
       <mat-card-content>
         <div class="metric-icon metric-icon--primary" aria-hidden="true">
-          <mat-icon>inventory_2</mat-icon>
+          <app-ui-icon name="package" aria-hidden="true" />
         </div>
         <div>
           <p class="metric-label">Productos activos</p>
@@ -47,7 +47,7 @@
     <mat-card class="metric-card metric-card--warning" appearance="outlined">
       <mat-card-content>
         <div class="metric-icon metric-icon--warning" aria-hidden="true">
-          <mat-icon>warning_amber</mat-icon>
+          <app-ui-icon name="warning" aria-hidden="true" />
         </div>
         <div>
           <p class="metric-label">Stock crítico</p>
@@ -59,7 +59,7 @@
     <mat-card class="metric-card metric-card--danger" appearance="outlined">
       <mat-card-content>
         <div class="metric-icon metric-icon--danger" aria-hidden="true">
-          <mat-icon>remove_shopping_cart</mat-icon>
+          <app-ui-icon name="cart-remove" aria-hidden="true" />
         </div>
         <div>
           <p class="metric-label">Productos agotados</p>
@@ -71,7 +71,7 @@
 
   @if (rows().length === 0) {
     <app-empty-state
-      icon="inventory_2"
+      icon="package"
       title="Sin productos activos"
       message="No hay productos activos para monitorear. Registra o reactiva un producto para verlo en el inventario."
     >
@@ -83,7 +83,7 @@
     <mat-card class="table-card" appearance="outlined">
       <mat-card-content>
         <div class="table-scroll">
-          <table class="inventory-table">
+          <table class="app-table-style inventory-table">
             <thead>
               <tr>
                 <th scope="col">Producto</th>
@@ -132,7 +132,7 @@
                           (click)="saveStock(product)"
                           [attr.aria-label]="'Guardar stock de ' + product.name"
                         >
-                          <mat-icon>check</mat-icon>
+                          <app-ui-icon name="check" aria-hidden="true" />
                         </button>
                         <button
                           mat-icon-button
@@ -141,7 +141,7 @@
                           (click)="cancelEdit()"
                           aria-label="Cancelar edición de stock"
                         >
-                          <mat-icon>close</mat-icon>
+                          <app-ui-icon name="close" aria-hidden="true" />
                         </button>
                       </div>
                       @if (stockError()) {
@@ -169,8 +169,8 @@
                         (click)="startEdit(product)"
                         [attr.aria-label]="'Actualizar stock de ' + product.name"
                       >
-                        <mat-icon aria-hidden="true">edit</mat-icon>
-                        Actualizar
+                        <app-ui-icon name="edit" aria-hidden="true" />
+                        Actualizar stock
                       </button>
                     }
                   </td>

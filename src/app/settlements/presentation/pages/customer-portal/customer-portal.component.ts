@@ -1,3 +1,4 @@
+import { businessLabel } from '../../../../shared/presentation/business-labels';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -48,7 +49,7 @@ export class CustomerPortalPageComponent implements OnInit {
       cutoffDate: s.cutoffDate,
       dueDate: s.dueDate,
       total: s.totalDue.toFormatted(),
-      status: s.status,
+      status: businessLabel(s.status),
     }));
   }
 }

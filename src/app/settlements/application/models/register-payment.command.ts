@@ -5,5 +5,6 @@ export interface RegisterPaymentCommand {
   settlementId: number;
   amount: Money;
   paymentMethod: PaymentMethod;
+  idempotencyKey: string;
   referenceNumber?: string;
 }

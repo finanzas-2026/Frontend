@@ -25,6 +25,7 @@ describe('Sales BC - CartStore (Signals)', () => {
   });
 
   const mockProduct = new CatalogProduct({
+    allowsInstallments: true,
     id: 1,
     name: 'Aceite Primor',
     sku: 'ACE-01',
@@ -39,7 +40,7 @@ describe('Sales BC - CartStore (Signals)', () => {
     customerId: 1,
     customerName: 'Juan Perez',
     storeId: 1,
-    paymentMode: PaymentModes.CONTADO,
+    paymentMode: PaymentModes.CASH,
     totalAmount: Money.fromString('20.00').unwrap(),
     status: 'COMPLETED',
     issueDate: '2026-11-09T10:00:00Z',
@@ -119,7 +120,7 @@ describe('Sales BC - CartStore (Signals)', () => {
 
   it('debe detectar cuando el importe excede la línea de crédito disponible', () => {
     store.selectCustomer(mockCustomer); // Disponible 700.00
-    store.setPaymentMode(PaymentModes.FINANCIADO_MENSUAL);
+    store.setPaymentMode(PaymentModes.MONTH_END);
 
     // Agregar 71 unidades a 10.00 = 710.00
     store.addItem(mockProduct, 71);
@@ -131,7 +132,7 @@ describe('Sales BC - CartStore (Signals)', () => {
   it('debe permitir la venta si se cambia a modalidad CONTADO aunque exceda la línea de crédito', () => {
     store.selectCustomer(mockCustomer);
     store.addItem(mockProduct, 71); // 710.00 > 700.00 disponible
-    store.setPaymentMode(PaymentModes.CONTADO);
+    store.setPaymentMode(PaymentModes.CASH);
 
     expect(store.isCreditExceeded()).toBe(false);
     expect(store.canSubmit()).toBe(true);

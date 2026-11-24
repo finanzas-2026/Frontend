@@ -10,7 +10,6 @@ import { FullPaymentStrictRule } from '../../domain/rules/full-payment-strict.ru
 import { ListSettlementsUseCase } from '../../application/use-cases/list-settlements.use-case';
 import { GetPayoffQuoteUseCase } from '../../application/use-cases/get-payoff-quote.use-case';
 import { RegisterPaymentUseCase } from '../../application/use-cases/register-payment.use-case';
-import { AdvanceDateUseCase } from '../../application/use-cases/advance-date.use-case';
 
 @Injectable({
   providedIn: 'root',
@@ -19,15 +18,17 @@ export class CollectionStore {
   private readonly listSettlementsUseCase = inject(ListSettlementsUseCase);
   private readonly getPayoffQuoteUseCase = inject(GetPayoffQuoteUseCase);
   private readonly registerPaymentUseCase = inject(RegisterPaymentUseCase);
-  private readonly advanceDateUseCase = inject(AdvanceDateUseCase);
   private readonly toast = inject(ToastService);
+
+  private quoteRequest = 0;
 
   readonly settlements = signal<MonthlySettlement[]>([]);
   readonly selectedSettlement = signal<MonthlySettlement | null>(null);
   readonly payoffQuote = signal<PayoffQuote | null>(null);
   readonly amountToPay = signal<string>('0.00');
-  readonly paymentMethod = signal<PaymentMethod>('EFECTIVO');
+  readonly paymentMethod = signal<PaymentMethod>('CASH');
   readonly referenceNumber = signal<string>('');
+  readonly idempotencyKey = signal<string>(newIdempotencyKey());
 
   readonly isLoading = signal<boolean>(false);
   readonly isSubmitting = signal<boolean>(false);
@@ -62,7 +63,7 @@ export class CollectionStore {
   readonly canProcessPayment = computed(() => {
     const quote = this.payoffQuote();
     return quote !== null && this.selectedSettlement()?.isPaid() === false &&
-      this.parsedAmount().equals(quote.totalPayoffAmount) && !this.isSubmitting();
+      !this.isPartialPaymentRejected() && !this.isSubmitting();
   });
 
   async loadSettlements(loadQuote = true): Promise<void> {
@@ -79,38 +80,47 @@ export class CollectionStore {
       const selectedId = this.selectedSettlement()?.id;
       const next = res.value.find((row) => row.id === selectedId) ??
         res.value.find((row) => !row.isPaid()) ?? res.value[0];
-      if (next && loadQuote) void this.selectSettlement(next.id);
+      if (next && loadQuote) await this.selectSettlement(next.id, true);
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  async selectSettlement(id: number): Promise<void> {
+  async selectSettlement(id: number, refresh = false): Promise<void> {
+    if (!refresh && this.selectedSettlement()?.id === id && this.payoffQuote()) return;
+    const quoteRequest = ++this.quoteRequest;
     const settlement = this.settlements().find((s) => s.id === id) ?? null;
+    if (this.selectedSettlement()?.id !== id) this.idempotencyKey.set(newIdempotencyKey());
     this.selectedSettlement.set(settlement);
     this.payoffQuote.set(null);
-    if (!settlement) {
-      this.payoffQuote.set(null);
-      return;
-    }
+    if (settlement) await this.loadQuote(id, quoteRequest);
+  }
 
+  private async loadQuote(id: number, quoteRequest: number): Promise<void> {
     try {
       const res = await this.getPayoffQuoteUseCase.execute({ settlementId: id });
-      if (res.isOk() && this.selectedSettlement()?.id === id) {
+      if (res.isOk() && this.quoteRequest === quoteRequest) {
         this.payoffQuote.set(res.value);
         this.amountToPay.set(res.value.totalPayoffAmount.toString());
       }
     } catch {
-      this.payoffQuote.set(null);
+      if (this.quoteRequest === quoteRequest) this.payoffQuote.set(null);
     }
   }
 
   setAmountToPay(val: string): void {
+    if (val !== this.amountToPay()) this.idempotencyKey.set(newIdempotencyKey());
     this.amountToPay.set(val);
   }
 
   setPaymentMethod(method: PaymentMethod): void {
+    if (method !== this.paymentMethod()) this.idempotencyKey.set(newIdempotencyKey());
     this.paymentMethod.set(method);
+  }
+
+  setReferenceNumber(value: string): void {
+    if (value !== this.referenceNumber()) this.idempotencyKey.set(newIdempotencyKey());
+    this.referenceNumber.set(value);
   }
 
   private async executePayment(settlementId: number): Promise<Payment | null> {
@@ -119,6 +129,7 @@ export class CollectionStore {
         settlementId,
         amount: this.parsedAmount(),
         paymentMethod: this.paymentMethod(),
+        idempotencyKey: this.idempotencyKey(),
         referenceNumber: this.referenceNumber() || undefined,
       });
 
@@ -129,6 +140,7 @@ export class CollectionStore {
       }
 
       this.lastReceipt.set(res.value);
+      this.idempotencyKey.set(newIdempotencyKey());
       this.toast.success(`Pago registrado: Recibo ${res.value.receiptNumber}`);
       await this.loadSettlements();
       return res.value;
@@ -160,20 +172,8 @@ export class CollectionStore {
     }
   }
 
-  async advanceDays(days: number): Promise<void> {
-    this.isLoading.set(true);
-    try {
-      const res = await this.advanceDateUseCase.execute(days);
-      if (res.isOk()) {
-        this.toast.info(`Fecha del sistema adelantada +${days} días`);
-        await this.loadSettlements();
-        const selected = this.selectedSettlement();
-        if (selected) {
-          await this.selectSettlement(selected.id);
-        }
-      }
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
+}
+
+function newIdempotencyKey(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }

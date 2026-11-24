@@ -1,213 +1,136 @@
+# Proximity Credit database
+
+The diagram shows the PostgreSQL entities used by the Docker stack and the main keys and contract fields. The Flyway baseline in the backend repository defines the full schema.
+
+- Both customer rates retain their original decimal fraction and reference period. Capitalization is present only for a nominal rate.
+- Product installment eligibility is stored in `allows_installments`. The system operates in PEN.
+- A month-end sale links to its settlement once billed. Installment sales link through their individual schedule rows.
+- A payment records the amount received, the amount allocated to the debt and the resulting credit balance.
+
 ```plantuml
 @startuml
-title Diagrama Entidad-Relación - Sistema de Ventas y Créditos
-
-hide circle
+skinparam dpi 180
+skinparam defaultFontName Liberation Sans
 skinparam linetype ortho
-skinparam packageStyle rectangle
+hide circle
+left to right direction
 
-skinparam entity {
-    BackgroundColor #F5F5F5
-    BorderColor #32658C
-    FontColor #222222
+entity stores {
+  * store_id : integer <<PK>>
+  --
+  business_name : varchar(100)
+  tax_id : varchar(20)
+  phone_number : varchar(20)
+  status : varchar(20)
+}
+entity users {
+  * user_id : integer <<PK>>
+  --
+  store_id : integer <<FK>>
+  username : varchar(50)
+  password_hash : varchar(255)
+  user_type : varchar(20)
+}
+entity customers {
+  * customer_id : integer <<PK>>
+  --
+  store_id : integer <<FK>>
+  user_id : integer <<FK, UNIQUE>>
+  credit_limit : decimal(12,2)
+  cutoff_day : integer
+  payment_due_day : integer
+  compensatory_rate_type : varchar(10)
+  compensatory_rate_value : decimal(12,7)
+  compensatory_rate_period_days : integer
+  compensatory_capitalization_days : integer
+  penalty_rate_type : varchar(10)
+  penalty_rate_value : decimal(12,7)
+  penalty_rate_period_days : integer
+  penalty_capitalization_days : integer
+  credit_currency : varchar(3)
+  favour_balance : decimal(12,2)
+}
+entity products {
+  * product_id : integer <<PK>>
+  --
+  store_id : integer <<FK>>
+  cash_price : decimal(12,2)
+  credit_list_price : decimal(12,2)
+  allows_installments : boolean
+  current_stock : integer
+  status : varchar(20)
+}
+entity sales {
+  * sale_id : integer <<PK>>
+  --
+  store_id : integer <<FK>>
+  customer_id : integer <<FK>>
+  settlement_id : integer <<FK>>
+  total_amount : decimal(12,2)
+  payment_mode : varchar(25)
+  tea : decimal(12,7)
+  penalty_tea : decimal(12,7)
+  billing_cutoff_date : date
+  first_due_date : date
+  sale_status : varchar(20)
+  idempotency_key : varchar(100)
+}
+entity sale_details {
+  * sale_detail_id : integer <<PK>>
+  --
+  sale_id : integer <<FK>>
+  product_id : integer <<FK>>
+  quantity : integer
+  unit_price : decimal(12,2)
+  subtotal : decimal(12,2)
+}
+entity amortization_schedules {
+  * schedule_id : integer <<PK>>
+  --
+  sale_id : integer <<FK>>
+  settlement_id : integer <<FK>>
+  billing_cutoff_date : date
+  due_date : date
+  principal_amount : decimal(12,2)
+  compensatory_interest : decimal(12,2)
+  fixed_installment : decimal(12,2)
+  ending_balance : decimal(12,2)
+}
+entity monthly_settlements {
+  * settlement_id : integer <<PK>>
+  --
+  customer_id : integer <<FK>>
+  cutoff_date : date
+  payment_due_date : date
+  total_amount_due : decimal(12,2)
+  pending_balance : decimal(12,2)
+  settlement_status : varchar(20)
+}
+entity payments {
+  * payment_id : integer <<PK>>
+  --
+  settlement_id : integer <<FK>>
+  amount_paid : decimal(12,2)
+  received_amount : decimal(12,2)
+  allocated_to_penalty : decimal(12,2)
+  allocated_to_interest : decimal(12,2)
+  allocated_to_principal : decimal(12,2)
+  favour_balance_after : decimal(12,2)
+  idempotency_key : varchar(100)
 }
 
-' ==================================================
-' BC 01 - IAM & TENANT MANAGEMENT
-' ==================================================
-
-package "BC 01 - IAM & Tenant Management" #E8F2FC {
-
-    entity "Stores" as Stores {
-        * store_id : integer <<PK>>
-        --
-        business_name : varchar(100) <<NN>>
-        tax_id : varchar(20) <<NN>>
-        address : varchar(150) <<NN>>
-        created_at : timestamptz <<NN>>
-        status : varchar(20) <<NN>>
-    }
-
-    entity "Users" as Users {
-        * user_id : integer <<PK>>
-        --
-        store_id : integer <<FK>>
-        username : varchar(50) <<NN>>
-        password_hash : varchar(255) <<NN>>
-        first_name : varchar(100) <<NN>>
-        last_name : varchar(100) <<NN>>
-        email : varchar(100) <<NN>>
-        user_type : varchar(20) <<NN>>
-        status : varchar(20) <<NN>>
-    }
-}
-
-' ==================================================
-' BC 02 - CATALOG & INVENTORY MANAGEMENT
-' ==================================================
-
-package "BC 02 - Catalog & Inventory Management" #E8F6EF {
-
-    entity "Products" as Products {
-        * product_id : integer <<PK>>
-        --
-        store_id : integer <<FK, NN>>
-        name : varchar(100) <<NN>>
-        description : text
-        brand : varchar(50)
-        supplier : varchar(100)
-        unit_of_measure : varchar(20) <<NN>>
-        image_url : varchar(255)
-        cash_price : decimal(12,2) <<NN>>
-        credit_list_price : decimal(12,2) <<NN>>
-        allows_monthly_payments : boolean <<NN>>
-        current_stock : integer <<NN>>
-        min_stock : integer <<NN>>
-        status : varchar(20) <<NN>>
-    }
-}
-
-' ==================================================
-' BC 03 - CREDIT MANAGEMENT
-' ==================================================
-
-package "BC 03 - Credit Management" #FFF3D9 {
-
-    entity "Customers" as Customers {
-        * customer_id : integer <<PK>>
-        --
-        store_id : integer <<FK, NN>>
-        user_id : integer <<FK, NN>>
-        home_address : varchar(150) <<NN>>
-        phone_number : varchar(20) <<NN>>
-        credit_limit : decimal(12,2) <<NN>>
-        max_credit_months : integer <<NN>>
-        cutoff_day : integer <<NN>>
-        payment_due_day : integer <<NN>>
-        compensatory_rate_type : varchar(10) <<NN>>
-        compensatory_rate_period_days : integer <<NN>>
-        compensatory_capitalization_days : integer
-        compensatory_rate_value : decimal(12,7) <<NN>>
-        penalty_rate_type : varchar(10) <<NN>>
-        penalty_rate_period_days : integer <<NN>>
-        penalty_capitalization_days : integer
-        penalty_rate_value : decimal(12,7) <<NN>>
-        credit_currency : varchar(3) <<NN>>
-        favour_balance : decimal(12,2) <<NN>>
-    }
-}
-
-' ==================================================
-' BC 04 - SALES MANAGEMENT
-' ==================================================
-
-package "BC 04 - Sales Management" #ECEEFC {
-
-    entity "Sales" as Sales {
-        * sale_id : integer <<PK>>
-        --
-        store_id : integer <<FK, NN>>
-        customer_id : integer <<FK, NN>>
-        sale_datetime : timestamptz <<NN>>
-        total_amount : decimal(12,2) <<NN>>
-        payment_mode : varchar(25) <<NN>>
-        number_of_months : integer <<NN>>
-        sale_status : varchar(20) <<NN>>
-    }
-
-    entity "SaleDetails" as SaleDetails {
-        * sale_detail_id : integer <<PK>>
-        --
-        sale_id : integer <<FK, NN>>
-        product_id : integer <<FK, NN>>
-        quantity : integer <<NN>>
-        unit_price : decimal(12,2) <<NN>>
-        subtotal : decimal(12,2) <<NN>>
-    }
-}
-
-' ==================================================
-' BC 05 - FINANCIAL MANAGEMENT
-' ==================================================
-
-package "BC 05 - Financial Management" #F2E6FA {
-
-    entity "AmortizationSchedules" as AmortizationSchedules {
-        * schedule_id : integer <<PK>>
-        --
-        sale_id : integer <<FK, NN>>
-        settlement_id : integer <<FK, NN>>
-        installment_number : integer <<NN>>
-        due_date : date <<NN>>
-        initial_balance : decimal(12,2) <<NN>>
-        principal_amount : decimal(12,2) <<NN>>
-        compensatory_interest : decimal(12,2) <<NN>>
-        fixed_installment : decimal(12,2) <<NN>>
-        ending_balance : decimal(12,2) <<NN>>
-        grace_period_days : integer <<NN>>
-        installment_status : varchar(20) <<NN>>
-    }
-}
-
-' ==================================================
-' BC 06 - SETTLEMENT & COLLECTION MANAGEMENT
-' ==================================================
-
-package "BC 06 - Settlement & Collection Management" #FCEDE5 {
-
-    entity "MonthlySettlements" as MonthlySettlements {
-        * settlement_id : integer <<PK>>
-        --
-        customer_id : integer <<FK, NN>>
-        period_month : integer <<NN>>
-        period_year : integer <<NN>>
-        cutoff_date : date <<NN>>
-        payment_due_date : date <<NN>>
-        month_purchases_amount : decimal(12,2) <<NN>>
-        month_installments_amount : decimal(12,2) <<NN>>
-        compensatory_interest_amount : decimal(12,2) <<NN>>
-        penalty_interest_amount : decimal(12,2) <<NN>>
-        total_amount_due : decimal(12,2) <<NN>>
-        paid_amount : decimal(12,2) <<NN>>
-        pending_balance : decimal(12,2) <<NN>>
-        settlement_status : varchar(20) <<NN>>
-    }
-
-    entity "Payments" as Payments {
-        * payment_id : integer <<PK>>
-        --
-        settlement_id : integer <<FK, NN>>
-        payment_datetime : timestamptz <<NN>>
-        amount_paid : decimal(12,2) <<NN>>
-        calculated_overdue_days : integer <<NN>>
-        allocated_to_penalty : decimal(12,2) <<NN>>
-        allocated_to_interest : decimal(12,2) <<NN>>
-        allocated_to_principal : decimal(12,2) <<NN>>
-        payment_method : varchar(50) <<NN>>
-    }
-}
-
-' ==================================================
-' RELACIONES ORIGINALES - SIN MODIFICACIONES
-' ==================================================
-
-Stores ||--o{ Users : "store_id"
-Stores ||--o{ Customers : "store_id"
-Stores ||--o{ Products : "store_id"
-Stores ||--o{ Sales : "store_id"
-
-Users ||--o{ Customers : "user_id"
-
-Customers ||--o{ Sales : "customer_id"
-Customers ||--o{ MonthlySettlements : "customer_id"
-
-Sales ||--o{ SaleDetails : "sale_id"
-Products ||--o{ SaleDetails : "product_id"
-
-Sales ||--o{ AmortizationSchedules : "sale_id"
-
-MonthlySettlements ||--o{ AmortizationSchedules : "settlement_id"
-MonthlySettlements ||--o{ Payments : "settlement_id"
-
+stores |o--o{ users
+stores ||--o{ customers
+users ||--o| customers
+stores ||--o{ products
+stores ||--o{ sales
+customers ||--o{ sales
+customers ||--o{ monthly_settlements
+sales ||--|{ sale_details
+products ||--o{ sale_details
+sales ||--o{ amortization_schedules
+monthly_settlements |o--o{ amortization_schedules
+monthly_settlements |o--o{ sales
+monthly_settlements ||--o{ payments
 @enduml
 ```

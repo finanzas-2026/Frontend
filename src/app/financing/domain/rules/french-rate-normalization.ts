@@ -8,7 +8,7 @@ Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 
 export interface RateNormalizationInput {
   rateValue: Decimal | string | number;
-  rateType: 'NOMINAL' | 'EFECTIVA';
+  rateType: 'NOMINAL' | 'EFFECTIVE';
   compoundingDays?: number;
   ratePeriodDays?: number;
 }
@@ -38,7 +38,7 @@ export function normalizeRates(input: RateNormalizationInput): NormalizedRatesOu
 
 
 function toAnnualRate(raw: Decimal, period: number, input: RateNormalizationInput): Decimal {
-  if (input.rateType === 'EFECTIVA' && input.compoundingDays == null) {
+  if (input.rateType === 'EFFECTIVE' && input.compoundingDays == null) {
     return raw.plus(1).pow(new Decimal(COMMERCIAL_YEAR_DAYS).div(period)).minus(1);
   }
   if (input.rateType !== 'NOMINAL') throw new Error('Tipo o capitalización de tasa inválidos.');

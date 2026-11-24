@@ -21,7 +21,7 @@ export interface Product extends BaseEntity {
   readonly imageUrl?: string;
   readonly cashPrice: number;
   readonly creditListPrice: number;
-  readonly allowsMonthlyPayments: boolean;
+  readonly allowsInstallments: boolean;
   readonly currentStock: number;
   readonly minStock: number;
   readonly status: ProductStatus;

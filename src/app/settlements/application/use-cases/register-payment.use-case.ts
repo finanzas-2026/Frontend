@@ -21,6 +21,7 @@ export class RegisterPaymentUseCase implements UseCase<RegisterPaymentCommand, P
           settlementId: command.settlementId,
           amount: command.amount,
           paymentMethod: command.paymentMethod,
+          idempotencyKey: command.idempotencyKey,
           referenceNumber: command.referenceNumber,
         })
       );

@@ -2,7 +2,7 @@ import { BaseEntity, Money } from '@shared/domain';
 
 export interface AgreedCreditTerms {
   maxMonths: number;
-  rateType: 'NOMINAL' | 'EFECTIVA';
+  rateType: 'NOMINAL' | 'EFFECTIVE';
   rateValue: string;
   ratePeriodDays: number;
   compoundingDays: number | null;

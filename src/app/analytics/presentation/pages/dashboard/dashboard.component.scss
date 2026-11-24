@@ -9,8 +9,10 @@
   gap: 1rem;
 }
 .kpi-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: 1.25rem;
-  border-radius: 8px;
+  border-radius: var(--app-card-radius, 1rem);
   background: #ffffff;
   border: 1px solid #e2e8f0;
   display: flex;
@@ -29,7 +31,10 @@
   color: #475569;
 }
 .kpi-icon {
-  font-size: 1.25rem;
+  color: #0369a1;
+}
+.kpi-icon--danger {
+  color: #b91c1c;
 }
 .kpi-main-val {
   font-size: 1.6rem;
@@ -50,11 +55,13 @@
 .chart-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: var(--app-card-radius, 1rem);
   padding: 1.25rem;
 }
 .chart-header {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
@@ -67,6 +74,7 @@
 }
 .chart-legend {
   display: flex;
+  flex-wrap: wrap;
   gap: 1.5rem;
   font-size: 0.8rem;
 }
@@ -78,7 +86,8 @@
 .color-box {
   width: 12px;
   height: 12px;
-  border-radius: 2px;
+  flex: none;
+  border-radius: 50%;
 }
 .color-sales {
   background: #0369a1;
@@ -87,6 +96,7 @@
   background: #15803d;
 }
 .chart-container {
+  overflow-x: auto;
   height: 260px;
   display: flex;
   align-items: flex-end;
@@ -97,6 +107,7 @@
 }
 .bar-group {
   flex: 1;
+  min-width: 3rem;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -113,7 +124,12 @@
   justify-content: center;
 }
 .bar {
+  position: relative;
   width: 14px;
+  min-height: 2px;
+  padding: 0;
+  border: 0;
+  cursor: help;
   border-radius: 3px 3px 0 0;
   transition: height 0.3s ease;
 }
@@ -122,6 +138,18 @@
 }
 .bar-collected {
   background: #15803d;
+}
+.bar::after {
+  content: '';
+  position: absolute;
+  inset: -0.5rem 0;
+}
+.bar:hover,
+.bar:focus-visible {
+  filter: brightness(1.2);
+}
+.bar.bar-zero {
+  background: transparent;
 }
 .month-label {
   font-size: 0.75rem;

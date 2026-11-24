@@ -10,7 +10,7 @@ export const SETTLEMENTS_ROUTES: Routes = [
   },
   {
     path: 'desk',
-    canActivate: [roleGuard(UserRoles.STORE_ADMIN, UserRoles.SUPER_ADMIN)],
+    canActivate: [roleGuard(UserRoles.STORE_ADMIN)],
     loadComponent: () =>
       import('./pages/collection-desk/collection-desk.component').then(
         (m) => m.CollectionDeskPageComponent
@@ -18,7 +18,7 @@ export const SETTLEMENTS_ROUTES: Routes = [
   },
   {
     path: 'list',
-    canActivate: [roleGuard(UserRoles.STORE_ADMIN, UserRoles.SUPER_ADMIN)],
+    canActivate: [roleGuard(UserRoles.STORE_ADMIN)],
     loadComponent: () =>
       import('./pages/settlements-list/settlements-list.component').then(
         (m) => m.SettlementsListPageComponent

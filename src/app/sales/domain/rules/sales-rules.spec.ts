@@ -24,7 +24,7 @@ describe('BC Sales - Domain Rules & Properties', () => {
       const customer = createCustomer('500.00', '500.00'); // Disponible 0.00
       const saleAmount = Money.fromString('1200.00').unwrap();
 
-      const result = CreditAvailabilityRule.validate(customer, saleAmount, PaymentModes.CONTADO);
+      const result = CreditAvailabilityRule.validate(customer, saleAmount, PaymentModes.CASH);
 
       expect(result.isOk()).toBe(true);
     });
@@ -36,7 +36,7 @@ describe('BC Sales - Domain Rules & Properties', () => {
       const result = CreditAvailabilityRule.validate(
         customer,
         saleAmount,
-        PaymentModes.FINANCIADO_CUOTAS
+        PaymentModes.INSTALLMENTS
       );
 
       expect(result.isOk()).toBe(true);
@@ -49,7 +49,7 @@ describe('BC Sales - Domain Rules & Properties', () => {
       const result = CreditAvailabilityRule.validate(
         customer,
         saleAmount,
-        PaymentModes.FINANCIADO_MENSUAL
+        PaymentModes.MONTH_END
       );
 
       expect(result.isErr()).toBe(true);
@@ -65,7 +65,7 @@ describe('BC Sales - Domain Rules & Properties', () => {
 
       const result = MonthlyPaymentEligibilityRule.validate(
         customer,
-        PaymentModes.FINANCIADO_MENSUAL
+        PaymentModes.MONTH_END
       );
 
       expect(result.isOk()).toBe(true);
@@ -76,7 +76,7 @@ describe('BC Sales - Domain Rules & Properties', () => {
 
       const result = MonthlyPaymentEligibilityRule.validate(
         customer,
-        PaymentModes.FINANCIADO_MENSUAL
+        PaymentModes.MONTH_END
       );
 
       expect(result.isErr()).toBe(true);
@@ -88,10 +88,10 @@ describe('BC Sales - Domain Rules & Properties', () => {
     it('debe permitir modalidad cuotas o contado aunque el cliente no tenga autorización mensual', () => {
       const customer = createCustomer('1000.00', '0.00', false);
 
-      const resContado = MonthlyPaymentEligibilityRule.validate(customer, PaymentModes.CONTADO);
+      const resContado = MonthlyPaymentEligibilityRule.validate(customer, PaymentModes.CASH);
       const resCuotas = MonthlyPaymentEligibilityRule.validate(
         customer,
-        PaymentModes.FINANCIADO_CUOTAS
+        PaymentModes.INSTALLMENTS
       );
 
       expect(resContado.isOk()).toBe(true);

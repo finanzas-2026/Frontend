@@ -12,7 +12,9 @@
 }
 
 .mob-icon {
-  font-size: 1.25rem;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin-bottom: 0.15rem;
 }
 
 .mobile-item.active-mobile-link {

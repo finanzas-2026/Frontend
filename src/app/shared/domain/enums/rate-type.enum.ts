@@ -1,6 +1,6 @@
 export const RateTypes = {
   NOMINAL: 'NOMINAL',
-  EFECTIVA: 'EFECTIVA',
+  EFFECTIVE: 'EFFECTIVE',
 } as const;
 
 export type RateType = (typeof RateTypes)[keyof typeof RateTypes];

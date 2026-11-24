@@ -29,6 +29,7 @@ export class AnalyticsAssembler
       customer_name: entity.customerName,
       amount: entity.amount.toString(),
       description: entity.description,
+      reference_code: entity.referenceCode,
     };
   }
 
@@ -71,7 +72,17 @@ export class AnalyticsAssembler
       eventType: dto.event_type as MovementEventType,
       customerName: dto.customer_name,
       amount,
-      description: dto.description,
+      description: movementDescription(dto.event_type, dto.reference_code),
+      referenceCode: dto.reference_code,
     });
+  }
+}
+
+function movementDescription(eventType: MovementEventType, referenceCode?: string): string {
+  const reference = referenceCode ? ` ${referenceCode}` : '';
+  switch (eventType) {
+    case 'SALE_CREATED': return `Venta registrada${reference}`;
+    case 'SETTLEMENT_CUTOFF': return `Liquidación generada${reference}`;
+    case 'PAYMENT_RECEIVED': return `Pago recibido${reference}`;
   }
 }

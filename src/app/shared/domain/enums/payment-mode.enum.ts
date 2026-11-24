@@ -1,7 +1,7 @@
 export const PaymentModes = {
-  CONTADO: 'CONTADO',
-  FINANCIADO_MENSUAL: 'FINANCIADO_MENSUAL',
-  FINANCIADO_CUOTAS: 'FINANCIADO_CUOTAS',
+  CASH: 'CASH',
+  MONTH_END: 'MONTH_END',
+  INSTALLMENTS: 'INSTALLMENTS',
 } as const;
 
 export type PaymentMode = (typeof PaymentModes)[keyof typeof PaymentModes];

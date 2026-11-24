@@ -1,5 +1,5 @@
 export interface PaymentRequestDto {
   amount: string;
-  payment_method: 'EFECTIVO' | 'TRANSFERENCIA' | 'YAPE';
+  payment_method: 'CASH' | 'BANK_TRANSFER' | 'YAPE';
   reference_number?: string;
 }

@@ -7,7 +7,7 @@ export class CreditAvailabilityRule {
     saleTotal: Money,
     paymentMode: PaymentMode
   ): Result<void, DomainError> {
-    if (paymentMode === PaymentModes.CONTADO) {
+    if (paymentMode === PaymentModes.CASH) {
       return ok(undefined);
     }
 

@@ -5,6 +5,6 @@ export interface CatalogProductDto {
   category: string;
   unit_price: string;
   credit_unit_price?: string;
-  allows_monthly_payments?: boolean;
+  allows_installments: boolean;
   stock: number;
 }

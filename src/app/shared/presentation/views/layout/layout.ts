@@ -1,5 +1,7 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Sidebar } from '../../components/sidebar/sidebar';
 import { Toolbar } from '../../components/toolbar/toolbar';
 import { MobileNavigation } from '../../components/mobile-navigation/mobile-navigation';
@@ -10,11 +12,30 @@ import { MobileNavigation } from '../../components/mobile-navigation/mobile-navi
   imports: [RouterOutlet, Sidebar, Toolbar, MobileNavigation],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
+  host: { '(keydown.escape)': 'closeMobileSidebar()' },
 })
 export class Layout {
-  readonly isSidebarOpen = signal<boolean>(true);
+  protected readonly isMobile = toSignal(
+    inject(BreakpointObserver).observe('(max-width: 768px)'),
+  );
+  private readonly desktopOpen = signal(true);
+  private readonly mobileOpen = signal(false);
+  readonly isSidebarOpen = computed(() =>
+    this.isMobile()?.matches ? this.mobileOpen() : this.desktopOpen(),
+  );
+
+  constructor() {
+    inject(Router).events.pipe(takeUntilDestroyed()).subscribe((event) => {
+      if (event instanceof NavigationEnd) this.closeMobileSidebar();
+    });
+  }
 
   toggleSidebar(): void {
-    this.isSidebarOpen.update((value) => !value);
+    const open = this.isMobile()?.matches ? this.mobileOpen : this.desktopOpen;
+    open.update((value) => !value);
+  }
+
+  closeMobileSidebar(): void {
+    this.mobileOpen.set(false);
   }
 }

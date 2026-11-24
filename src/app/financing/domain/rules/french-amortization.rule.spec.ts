@@ -55,7 +55,7 @@ describe('French Amortization Rule (Financial Equations)', () => {
     const schedule = calculateFrenchSchedule({
       initialCapital: '1000.00',
       rateValue: '0.2000000',
-      rateType: 'EFECTIVA',
+      rateType: 'EFFECTIVE',
       ratePeriodDays: 360,
       totalInstallments: 6,
       graceDays: 0,
@@ -70,7 +70,7 @@ describe('French Amortization Rule (Financial Equations)', () => {
 
   it('mantiene el fin de mes y concilia cuotas con tasa cero', () => {
     const result = calculateFrenchSchedule({
-      initialCapital: '100.00', rateValue: '0', ratePeriodDays: 360, rateType: 'EFECTIVA',
+      initialCapital: '100.00', rateValue: '0', ratePeriodDays: 360, rateType: 'EFFECTIVE',
       totalInstallments: 3, firstDueDate: '2026-01-31',
     });
     expect(result.total_interest).toBe('0.00');
@@ -81,7 +81,7 @@ describe('French Amortization Rule (Financial Equations)', () => {
 
   it('anualiza la tasa mensual, rechaza la frecuencia semanal y conserva el valor pactado', () => {
     const input = { initialCapital: '100.00', rateValue: '0.02', ratePeriodDays: 30,
-      rateType: 'EFECTIVA' as const, totalInstallments: 2 };
+      rateType: 'EFFECTIVE' as const, totalInstallments: 2 };
     expect(calculateFrenchSchedule(input).tea).toBe('0.2682418');
     expect(input.rateValue).toBe('0.02');
     expect(() => calculateFrenchSchedule({ ...input, rateType: 'NOMINAL', compoundingDays: 7 }))
@@ -91,7 +91,7 @@ describe('French Amortization Rule (Financial Equations)', () => {
 
   it('no produce cuotas negativas al redondear capitales pequeños', () => {
     const result = calculateFrenchSchedule({
-      initialCapital: '0.06', rateValue: '0.01', ratePeriodDays: 360, rateType: 'EFECTIVA',
+      initialCapital: '0.06', rateValue: '0.01', ratePeriodDays: 360, rateType: 'EFFECTIVE',
       totalInstallments: 10,
     });
     expect(result.installments.every((row) => Number(row.payment_amount) >= 0)).toBe(true);
@@ -99,7 +99,7 @@ describe('French Amortization Rule (Financial Equations)', () => {
   });
 
   it('calcula la mora con el pacto original y devuelve cero antes de vencer', () => {
-    const { tea } = normalizeRates({ rateType: 'EFECTIVA', rateValue: '0.18', ratePeriodDays: 360 });
+    const { tea } = normalizeRates({ rateType: 'EFFECTIVE', rateValue: '0.18', ratePeriodDays: 360 });
     const mora = calculateOverdueInterest('800.00', tea, 10);
     expect(mora.toFixed(2)).toBe('3.69');
     expect(mora.toDecimalPlaces(2).plus(825).toFixed(2)).toBe('828.69');
@@ -120,7 +120,7 @@ describe('French Amortization Rule (Financial Equations)', () => {
           const schedule = calculateFrenchSchedule({
             initialCapital: capital.toFixed(2),
             rateValue: rate.toFixed(7),
-            rateType: isNominal ? 'NOMINAL' : 'EFECTIVA',
+            rateType: isNominal ? 'NOMINAL' : 'EFFECTIVE',
             compoundingDays: isNominal ? 1 : undefined,
             ratePeriodDays: 360,
             totalInstallments: n,

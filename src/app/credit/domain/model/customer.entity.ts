@@ -12,11 +12,12 @@ import { CreditCurrency } from '../constants/credit-currency.constant';
  * Numeric/financial constraints (non-negative credit limit, rates and balance;
  * `maxCreditMonths` between 1 and 36; `cutoffDay`/`paymentDueDay` between 1
  * and 30; mandatory capitalization for `NOMINAL` rates and `null` for
- * `EFECTIVA` rates) belong to the credit contract and are enforced by the
+ * `EFFECTIVE` rates) belong to the credit contract and are enforced by the
  * upper layers. No calculated fields such as available credit, pending debt,
  * installments or accrued interest are stored here.
  */
 export interface Customer extends BaseEntity {
+  readonly fullName: string;
   readonly storeId: number;
   readonly userId: number;
   readonly homeAddress: string;

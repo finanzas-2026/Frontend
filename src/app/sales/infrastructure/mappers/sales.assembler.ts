@@ -127,23 +127,26 @@ export class SalesAssembler
       unitPrice,
       stock: dto.stock,
       creditUnitPrice: dto.credit_unit_price ? Money.fromString(dto.credit_unit_price).unwrap() : undefined,
-      allowsMonthlyPayments: dto.allows_monthly_payments,
+      allowsInstallments: dto.allows_installments,
     });
   }
 
   toCreateSaleRequestDto(params: CreateSaleParams): CreateSaleRequestDto {
+    const expectedTotal = params.details.reduce(
+      (total, detail) => total.add(detail.unitPrice.multiply(detail.quantity)),
+      Money.zero(),
+    );
     return {
       customer_id: params.customerId,
-      store_id: params.storeId,
       payment_mode: params.paymentMode,
       installments_count: params.installmentsCount,
       grace_days: params.graceDays,
       tea: params.tea ? params.tea.toFractionString() : undefined,
+      expected_total: expectedTotal.toString(),
       first_due_date: params.firstDueDate,
       details: params.details.map((d) => ({
         product_id: d.productId,
         quantity: d.quantity,
-        unit_price: d.unitPrice.toString(),
       })),
     };
   }

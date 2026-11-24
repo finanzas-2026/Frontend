@@ -14,7 +14,7 @@ export interface SaleResponseDto {
   customer_id: number;
   customer_name: string;
   store_id: number;
-  payment_mode: 'CONTADO' | 'FINANCIADO_MENSUAL' | 'FINANCIADO_CUOTAS';
+  payment_mode: 'CASH' | 'MONTH_END' | 'INSTALLMENTS';
   total_amount: string;
   status: string;
   installments_count?: number;

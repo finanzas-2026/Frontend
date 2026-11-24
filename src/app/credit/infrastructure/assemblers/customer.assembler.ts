@@ -15,30 +15,32 @@ export class CustomerAssembler implements BaseAssembler<Customer, CustomerResour
   toEntityFromResource(resource: CustomerResource): Customer {
     return {
       id: resource.id,
+      fullName: resource.full_name?.trim() || `Cliente #${resource.id}`,
       storeId: resource.store_id,
       userId: resource.user_id,
       homeAddress: resource.home_address,
       phoneNumber: resource.phone_number,
-      creditLimit: resource.credit_limit,
+      creditLimit: Number(resource.credit_limit),
       maxCreditMonths: resource.max_credit_months,
       cutoffDay: resource.cutoff_day,
       paymentDueDay: resource.payment_due_day,
       compensatoryRateType: resource.compensatory_rate_type,
       compensatoryRatePeriodDays: resource.compensatory_rate_period_days,
       compensatoryCapitalizationDays: resource.compensatory_capitalization_days,
-      compensatoryRateValue: resource.compensatory_rate_value,
+      compensatoryRateValue: Number(resource.compensatory_rate_value),
       penaltyRateType: resource.penalty_rate_type,
       penaltyRatePeriodDays: resource.penalty_rate_period_days,
       penaltyCapitalizationDays: resource.penalty_capitalization_days,
-      penaltyRateValue: resource.penalty_rate_value,
+      penaltyRateValue: Number(resource.penalty_rate_value),
       creditCurrency: resource.credit_currency,
-      favourBalance: resource.favour_balance,
+      favourBalance: Number(resource.favour_balance),
     };
   }
 
   toResourceFromEntity(entity: Customer): CustomerResource {
     return {
       id: entity.id,
+      full_name: entity.fullName,
       store_id: entity.storeId,
       user_id: entity.userId,
       home_address: entity.homeAddress,

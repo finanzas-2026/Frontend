@@ -1,16 +1,15 @@
 export interface CreateSaleDetailRequestDto {
   product_id: number;
   quantity: number;
-  unit_price: string;
 }
 
 export interface CreateSaleRequestDto {
   customer_id: number;
-  store_id: number;
-  payment_mode: 'CONTADO' | 'FINANCIADO_MENSUAL' | 'FINANCIADO_CUOTAS';
+  payment_mode: 'CASH' | 'MONTH_END' | 'INSTALLMENTS';
   installments_count?: number;
   grace_days?: number;
   tea?: string;
+  expected_total: string;
   first_due_date?: string;
   details: CreateSaleDetailRequestDto[];
 }

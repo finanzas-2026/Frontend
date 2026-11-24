@@ -9,6 +9,7 @@ import { UserRole } from '../../domain/constants/user-roles.constant';
 export interface AuthSession {
   readonly userId: number;
   readonly username: string;
+  readonly email: string;
   readonly userType: UserRole;
   readonly storeId: number | null;
 }

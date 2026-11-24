@@ -8,26 +8,13 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: process.env['E2E_BASE_URL'] ?? 'http://localhost:4200',
     trace: 'on-first-retry',
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-  ],
-  webServer: [
-    {
-      command: 'npm run api',
-      url: 'http://localhost:8080/health',
-      reuseExistingServer: false,
-    },
-    {
-      command: 'npm start -- --port 4200',
-      url: 'http://localhost:4200',
-      reuseExistingServer: false,
-      timeout: 120 * 1000,
+      use: { ...devices['Desktop Chrome'], channel: 'chromium' },
     },
   ],
 });

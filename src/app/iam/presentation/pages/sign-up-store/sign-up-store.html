@@ -1,6 +1,6 @@
 <section class="auth-page sign-up-page" aria-label="Registro de establecimiento">
   <app-auth-brand-panel
-    eyebrow="Nueva tienda"
+    eyebrow="Administración de tiendas"
     title="Crédito Proximidad"
     description="Configura tu establecimiento y la cuenta administradora en tres pasos. Al finalizar podrás iniciar sesión con las credenciales registradas."
     [features]="brandFeatures"
@@ -11,19 +11,19 @@
       <mat-card-content>
         @if (isSuccess()) {
           <div class="success-panel" role="status">
-            <mat-icon class="success-icon" aria-hidden="true">check_circle</mat-icon>
+            <app-ui-icon class="success-icon" name="check-circle" aria-hidden="true" />
             <h1>Registro completado</h1>
             <p>
               La tienda y la cuenta administradora fueron creadas correctamente.
-              Ya puedes iniciar sesión.
+              La nueva tienda ya puede iniciar sesión.
             </p>
             <a
               mat-flat-button
               color="primary"
-              routerLink="/iam/sign-in"
+              routerLink="/stores"
               class="primary-button"
             >
-              Iniciar sesión
+              Volver a tiendas
             </a>
           </div>
         } @else {
@@ -46,7 +46,7 @@
               >
                 <span class="step-number">
                   @if (step() > item.number) {
-                    <mat-icon aria-hidden="true">check</mat-icon>
+                    <app-ui-icon name="check" aria-hidden="true" />
                   } @else {
                     {{ item.number }}
                   }
@@ -202,6 +202,11 @@
                       adminForm.controls.username.hasError('required')
                     ) {
                       <mat-error>El nombre de usuario es obligatorio.</mat-error>
+                    } @else if (
+                      adminForm.controls.username.touched &&
+                      adminForm.controls.username.hasError('usernameFormat')
+                    ) {
+                      <mat-error>Usa de 3 a 50 letras, números, puntos, guiones o guiones bajos. No incluyas espacios ni @.</mat-error>
                     }
                   </mat-form-field>
 
@@ -226,9 +231,7 @@
                       [attr.aria-pressed]="showPassword()"
                       (click)="togglePasswordVisibility()"
                     >
-                      <mat-icon aria-hidden="true">
-                        {{ showPassword() ? 'visibility_off' : 'visibility' }}
-                      </mat-icon>
+                      <app-ui-icon [name]="showPassword() ? 'eye-off' : 'eye'" aria-hidden="true" />
                     </button>
                     @if (
                       adminForm.controls.password.touched &&
@@ -313,7 +316,7 @@
 
             @if (authStore.error()) {
               <div class="form-error" role="alert" aria-live="assertive">
-                <mat-icon aria-hidden="true">error_outline</mat-icon>
+                <app-ui-icon name="error" aria-hidden="true" />
                 <span>{{ authStore.error() }}</span>
               </div>
             }

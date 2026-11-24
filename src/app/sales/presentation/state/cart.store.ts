@@ -30,15 +30,15 @@ export class CartStore {
   private readonly createSaleUseCase = inject(CreateSaleUseCase);
   private readonly simulateScheduleUseCase = inject(SimulateScheduleUseCase);
   private readonly toast = inject(ToastService);
+  private pendingSaleRequest: { fingerprint: string; idempotencyKey: string } | null = null;
 
   readonly customers = signal<CustomerCreditInfo[]>([]);
   readonly products = signal<CatalogProduct[]>([]);
   readonly selectedCustomer = signal<CustomerCreditInfo | null>(null);
   readonly items = signal<CartItem[]>([]);
-  readonly paymentMode = signal<PaymentMode>(PaymentModes.CONTADO);
+  readonly paymentMode = signal<PaymentMode>(PaymentModes.CASH);
 
   readonly installmentsCount = signal<number>(3);
-  readonly graceDays = signal<number>(0);
   readonly schedulePreview = signal<AmortizationSchedule | null>(null);
 
   readonly isLoading = signal<boolean>(false);
@@ -62,7 +62,7 @@ export class CartStore {
   readonly isCreditExceeded = computed(() => {
     const mode = this.paymentMode();
     const cust = this.selectedCustomer();
-    if (mode === PaymentModes.CONTADO || !cust) {
+    if (mode === PaymentModes.CASH || !cust) {
       return false;
     }
     return this.totalAmount().isGreaterThan(this.availableCredit());
@@ -71,11 +71,16 @@ export class CartStore {
   readonly isMonthlyEligible = computed(() => {
     const mode = this.paymentMode();
     const cust = this.selectedCustomer();
-    if (mode !== PaymentModes.FINANCIADO_MENSUAL || !cust) {
+    if (mode !== PaymentModes.MONTH_END || !cust) {
       return true;
     }
-    return cust.allowsMonthlyPayments && this.items().every((item) => item.product.allowsMonthlyPayments);
+    return cust.allowsMonthlyPayments;
   });
+
+  readonly areInstallmentsAllowed = computed(() =>
+    this.paymentMode() !== PaymentModes.INSTALLMENTS ||
+    this.items().every((item) => item.product.allowsInstallments),
+  );
 
   readonly canSubmit = computed(() => {
     return (
@@ -85,15 +90,16 @@ export class CartStore {
       this.hasValidTerms() &&
       !this.isCreditExceeded() &&
       this.isMonthlyEligible() &&
+      this.areInstallmentsAllowed() &&
       !this.isSubmitting()
     );
   });
 
   private hasValidTerms(): boolean {
     const mode = this.paymentMode();
-    if (mode === PaymentModes.CONTADO) return true;
+    if (mode === PaymentModes.CASH) return true;
     return !!this.selectedCustomer()?.terms &&
-      (mode !== PaymentModes.FINANCIADO_CUOTAS || this.schedulePreview() !== null);
+      (mode !== PaymentModes.INSTALLMENTS || this.schedulePreview() !== null);
   }
 
   async loadInitialData(): Promise<void> {
@@ -142,7 +148,7 @@ export class CartStore {
       this.items.set([...current, { product, quantity: qty, subtotal }]);
     }
 
-    if (this.paymentMode() === PaymentModes.FINANCIADO_CUOTAS) {
+    if (this.paymentMode() === PaymentModes.INSTALLMENTS) {
       void this.calculateSchedulePreview();
     }
   }
@@ -159,14 +165,14 @@ export class CartStore {
       return { ...item, quantity: newQty, subtotal };
     });
     this.items.set(updated);
-    if (this.paymentMode() === PaymentModes.FINANCIADO_CUOTAS) {
+    if (this.paymentMode() === PaymentModes.INSTALLMENTS) {
       void this.calculateSchedulePreview();
     }
   }
 
   removeItem(productId: number): void {
     this.items.set(this.items().filter((i) => i.product.id !== productId));
-    if (this.paymentMode() === PaymentModes.FINANCIADO_CUOTAS) {
+    if (this.paymentMode() === PaymentModes.INSTALLMENTS) {
       void this.calculateSchedulePreview();
     }
   }
@@ -180,20 +186,14 @@ export class CartStore {
   }
 
   priceFor(product: CatalogProduct): Money {
-    return this.paymentMode() === PaymentModes.CONTADO ? product.unitPrice : product.creditUnitPrice;
+    return this.paymentMode() === PaymentModes.CASH ? product.unitPrice : product.creditUnitPrice;
   }
 
-  setInstallmentParams(params: {
-    installmentsCount?: number;
-    graceDays?: number;
-  }): void {
+  setInstallmentParams(params: { installmentsCount?: number }): void {
     if (params.installmentsCount !== undefined) {
       this.installmentsCount.set(params.installmentsCount);
     }
-    if (params.graceDays !== undefined) {
-      this.graceDays.set(params.graceDays);
-    }
-    if (this.paymentMode() === PaymentModes.FINANCIADO_CUOTAS) {
+    if (this.paymentMode() === PaymentModes.INSTALLMENTS) {
       void this.calculateSchedulePreview();
     }
   }
@@ -205,7 +205,7 @@ export class CartStore {
     if (!customer) return;
     const terms = customer.terms;
     const total = this.totalAmount();
-    if (this.paymentMode() !== PaymentModes.FINANCIADO_CUOTAS || total.isZero() || !terms ||
+    if (this.paymentMode() !== PaymentModes.INSTALLMENTS || total.isZero() || !terms ||
         this.installmentsCount() > terms.maxMonths) return;
 
     const rate = Rate.fromFraction(terms.rateValue);
@@ -218,7 +218,6 @@ export class CartStore {
       compoundingDays: terms.compoundingDays ?? undefined,
       customerId: customer.id,
       totalInstallments: this.installmentsCount(),
-      graceDays: this.graceDays(),
     });
     if (version !== this.previewVersion) return;
     if (result.isOk()) {
@@ -240,26 +239,44 @@ export class CartStore {
       this.toast.error(monthlyCheck.error.message);
       return false;
     }
+    if (!this.areInstallmentsAllowed()) {
+      this.toast.error('Uno o más productos no permiten financiamiento en cuotas.');
+      return false;
+    }
     return true;
   }
 
   private buildCommand(cust: CustomerCreditInfo, mode: PaymentMode, storeId: number): CreateSaleCommand {
-    const isCuotas = mode === PaymentModes.FINANCIADO_CUOTAS;
+    const isCuotas = mode === PaymentModes.INSTALLMENTS;
     const preview = this.schedulePreview();
     return {
       customerId: cust.id,
       storeId,
       paymentMode: mode,
       installmentsCount: isCuotas ? this.installmentsCount() : undefined,
-      graceDays: isCuotas ? this.graceDays() : undefined,
+      graceDays: isCuotas ? preview?.graceDays : undefined,
       tea: isCuotas ? preview?.normalizedRates.tea : undefined,
-      firstDueDate: preview?.installments.find((installment) => !installment.isGracePeriod)?.dueDate,
+      firstDueDate: isCuotas
+        ? preview?.installments.find((installment) => !installment.isGracePeriod)?.dueDate
+        : undefined,
       details: this.items().map((item) => ({
         productId: item.product.id,
         quantity: item.quantity,
         unitPrice: this.priceFor(item.product),
       })),
     };
+  }
+
+  private idempotencyKeyFor(command: CreateSaleCommand): string {
+    const { idempotencyKey: _ignored, ...payload } = command;
+    const fingerprint = JSON.stringify(payload);
+    if (this.pendingSaleRequest?.fingerprint !== fingerprint) {
+      this.pendingSaleRequest = {
+        fingerprint,
+        idempotencyKey: globalThis.crypto.randomUUID(),
+      };
+    }
+    return this.pendingSaleRequest.idempotencyKey;
   }
 
   private async executeSaleCreation(cmd: CreateSaleCommand): Promise<Sale | null> {
@@ -271,6 +288,7 @@ export class CartStore {
         return null;
       }
       const sale = result.value;
+      this.pendingSaleRequest = null;
       this.lastCreatedSale.set(sale);
       this.toast.success(`Venta ${sale.code} registrada exitosamente.`);
       this.clearCart();
@@ -297,7 +315,8 @@ export class CartStore {
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
     try {
-      const cmd = this.buildCommand(cust, mode, storeId);
+      const payload = this.buildCommand(cust, mode, storeId);
+      const cmd = { ...payload, idempotencyKey: this.idempotencyKeyFor(payload) };
       return await this.executeSaleCreation(cmd);
     } finally {
       this.isSubmitting.set(false);

@@ -20,6 +20,7 @@ export class StoreAssembler implements BaseAssembler<Store, StoreResource, Store
       businessName: resource.business_name,
       taxId: resource.tax_id,
       address: resource.address,
+      phoneNumber: resource.phone_number ?? undefined,
       createdAt: resource.created_at,
       status: toStoreStatus(resource.status),
     };
@@ -31,6 +32,7 @@ export class StoreAssembler implements BaseAssembler<Store, StoreResource, Store
       business_name: entity.businessName,
       tax_id: entity.taxId,
       address: entity.address,
+      phone_number: entity.phoneNumber,
       created_at: entity.createdAt,
       status: entity.status,
     };

@@ -1,20 +1,20 @@
 <app-page-header [title]="pageTitle()" [subtitle]="pageSubtitle()">
   <a mat-stroked-button routerLink="/catalog/products">
-    <mat-icon aria-hidden="true">arrow_back</mat-icon>
+    <app-ui-icon name="arrow-left" aria-hidden="true" />
     Volver al catálogo
   </a>
 </app-page-header>
 
 @if (!hasStore()) {
   <app-empty-state
-    icon="storefront"
+    icon="store"
     title="Sin establecimiento asociado"
     message="La sesión actual no tiene una tienda asignada. No es posible registrar productos sin un establecimiento propietario."
   />
 } @else if (loadError()) {
   <mat-card class="state-card" appearance="outlined">
     <mat-card-content>
-      <mat-icon class="state-icon" aria-hidden="true">error_outline</mat-icon>
+      <app-ui-icon class="state-icon" name="error" aria-hidden="true" />
       <h2>No se pudo cargar el producto</h2>
       <p>{{ loadError() }}</p>
       <a mat-flat-button color="primary" routerLink="/catalog/products">
@@ -84,7 +84,7 @@
               <mat-label>Unidad de medida</mat-label>
               <mat-select formControlName="unitOfMeasure" aria-required="true">
                 @for (unit of units; track unit) {
-                  <mat-option [value]="unit">{{ unit }}</mat-option>
+                  <mat-option [value]="unit.value">{{ unit.label }}</mat-option>
                 }
               </mat-select>
               @if (
@@ -167,12 +167,12 @@
             </mat-form-field>
 
             <div class="toggle-field field-span-2">
-              <mat-slide-toggle formControlName="allowsMonthlyPayments">
-                Permite pagos mensuales
+              <mat-slide-toggle formControlName="allowsInstallments">
+                Permite venta en cuotas
               </mat-slide-toggle>
               <p class="field-hint">
-                Habilita esta opción si el producto puede venderse a crédito
-                con cuotas mensuales.
+                Habilita esta opción si el producto puede venderse mediante el
+                cronograma francés en cuotas.
               </p>
             </div>
           </div>
@@ -273,13 +273,13 @@
 
     @if (submitError()) {
       <div class="page-alert" role="alert">
-        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <app-ui-icon name="error" aria-hidden="true" />
         <span>{{ submitError() }}</span>
       </div>
     }
 
     <div class="form-actions">
-      <a mat-stroked-button routerLink="/catalog/products">Cancelar</a>
+      <a mat-stroked-button routerLink="/catalog/products"><app-ui-icon name="close" [size]="16" aria-hidden="true" /> Cancelar</a>
       <button
         mat-flat-button
         color="primary"
@@ -290,6 +290,7 @@
           <mat-spinner diameter="20" aria-label="Guardando producto" />
           <span>Guardando...</span>
         } @else {
+          <app-ui-icon name="check" [size]="16" aria-hidden="true" />
           <span>{{ submitLabel() }}</span>
         }
       </button>

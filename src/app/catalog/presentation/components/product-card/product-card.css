@@ -21,7 +21,7 @@
   height: 100%;
   overflow: hidden;
   border: 1px solid var(--catalog-border);
-  border-radius: 0.75rem;
+  border-radius: var(--app-card-radius, 1rem);
   background: var(--catalog-surface);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
@@ -54,10 +54,9 @@
   font-size: 0.78rem;
 }
 
-.product-card__placeholder mat-icon {
+.product-card__placeholder app-ui-icon {
   width: 2.5rem;
   height: 2.5rem;
-  font-size: 2.5rem;
 }
 
 .status-badge {
@@ -149,7 +148,7 @@
   gap: 0.65rem;
   margin: 0;
   padding: 0.75rem;
-  border-radius: 0.55rem;
+  border-radius: var(--app-nested-card-radius, 0.75rem);
   background: #f8fafc;
 }
 
@@ -184,6 +183,7 @@
 
 .product-card__actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem;
   padding-top: 0.75rem;
@@ -192,15 +192,17 @@
 
 .product-card__actions button {
   flex: 1;
+  border: 1px solid currentColor;
+  border-color: var(--mat-button-filled-container-color, var(--mat-sys-primary));
 }
 
 .product-card__actions .deactivate-button {
-  color: var(--catalog-danger);
+  --mat-button-filled-container-color: var(--catalog-danger);
+  --mat-button-filled-label-text-color: #fff;
 }
 
-.product-card__actions mat-icon {
+.product-card__actions app-ui-icon {
   margin-right: 0.25rem;
-  font-size: 1.05rem;
   width: 1.05rem;
   height: 1.05rem;
 }

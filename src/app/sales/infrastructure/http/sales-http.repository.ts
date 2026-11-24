@@ -38,7 +38,10 @@ export class SalesHttpRepository extends BaseApi implements SalesRepository {
   createSale(params: CreateSaleParams): Observable<Sale> {
     const payload = this.assembler.toCreateSaleRequestDto(params);
 
-    return this.http.post<SaleResponseDto>(this.basePath, payload).pipe(
+    const idempotencyKey = params.idempotencyKey ?? globalThis.crypto.randomUUID();
+    return this.http.post<SaleResponseDto>(this.basePath, payload, {
+      headers: { 'Idempotency-Key': idempotencyKey },
+    }).pipe(
       map((response) => {
         const parseResult = saleResponseSchema.safeParse(response);
         if (!parseResult.success) {
@@ -114,8 +117,6 @@ export class SalesHttpRepository extends BaseApi implements SalesRepository {
   }
 
   getCatalogProducts(): Observable<CatalogProduct[]> {
-    // TODO(BACKEND-INTEGRATION): Implementar esta operación
-    // cuando exista el endpoint correspondiente en el backend real.
     const listSchema = z.array(catalogProductSchema);
     return this.http.get<CatalogProductDto[]>(`${this.rootApiUrl}/catalog/products`).pipe(
       map((response) => {

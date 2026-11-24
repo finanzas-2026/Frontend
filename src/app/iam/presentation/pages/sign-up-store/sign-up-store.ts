@@ -11,10 +11,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
+import { UiIconComponent } from '@shared/index';
 import {
   AuthStore,
   StoreRegistrationCommand,
@@ -24,6 +24,12 @@ import { AuthBrandPanel } from '../../components/auth-brand-panel/auth-brand-pan
 import { TouchedErrorStateMatcher } from '../../utils/touched-error-state-matcher';
 
 const MIN_PASSWORD_LENGTH = 6;
+const USERNAME_PATTERN = /^[A-Za-z0-9._-]{3,50}$/;
+
+const usernameValidator: ValidatorFn = (control) => {
+  const value = typeof control.value === 'string' ? control.value.trim() : '';
+  return value.length === 0 || USERNAME_PATTERN.test(value) ? null : { usernameFormat: true };
+};
 
 @Component({
   selector: 'app-sign-up-store',
@@ -34,10 +40,10 @@ const MIN_PASSWORD_LENGTH = 6;
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     AuthBrandPanel,
+    UiIconComponent,
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: TouchedErrorStateMatcher },
@@ -77,7 +83,7 @@ export class SignUpStorePage implements OnInit {
         firstName: ['', [Validators.required]],
         lastName: ['', [Validators.required]],
         email: ['', [Validators.required, Validators.email]],
-        username: ['', [Validators.required]],
+        username: ['', [Validators.required, usernameValidator]],
         password: [
           '',
           [Validators.required, Validators.minLength(MIN_PASSWORD_LENGTH)],

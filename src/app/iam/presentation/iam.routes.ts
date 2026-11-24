@@ -17,9 +17,7 @@ export const IAM_ROUTES: Routes = [
   },
   {
     path: 'sign-up',
-    loadComponent: () =>
-      import('./pages/sign-up-store/sign-up-store').then(
-        (m) => m.SignUpStorePage
-      ),
+    pathMatch: 'full',
+    redirectTo: 'sign-in',
   },
 ];

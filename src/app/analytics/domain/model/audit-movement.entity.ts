@@ -9,6 +9,7 @@ export interface AuditMovementProps {
   customerName: string;
   amount: Money;
   description: string;
+  referenceCode?: string;
 }
 
 export class AuditMovement implements BaseEntity {
@@ -18,6 +19,7 @@ export class AuditMovement implements BaseEntity {
   readonly customerName: string;
   readonly amount: Money;
   readonly description: string;
+  readonly referenceCode?: string;
 
   constructor(props: AuditMovementProps) {
     this.id = props.id;
@@ -26,5 +28,6 @@ export class AuditMovement implements BaseEntity {
     this.customerName = props.customerName;
     this.amount = props.amount;
     this.description = props.description;
+    this.referenceCode = props.referenceCode;
   }
 }

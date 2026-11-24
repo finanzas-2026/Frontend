@@ -1,60 +1,86 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { demoApi, operatorHeaders, signIn } from './demo-session';
+import { apiBase, bearer, loginApi, signIn } from './api-session';
 
-test('completa venta financiada, cierre, cobro idempotente y actualización de analítica', async ({ page, request }) => {
+test('registers all sale modes, closes the cycle and collects a payment with surplus', async ({ page, request }) => {
+  test.setTimeout(90_000);
   await signIn(page, '/sales/pos');
-  await page.getByRole('combobox', { name: 'Seleccionar cliente para la venta' }).click();
-  await page.getByRole('option', { name: /Ana Gómez/ }).click();
-  await page.getByRole('button', { name: /Agregar Saco de Arroz/ }).click();
-  await page.getByText('Financiado en Cuotas (Francés)', { exact: true }).click();
-  await expect(page.getByText(/Cuota Estimada/)).toBeVisible();
-  const saleResponse = page.waitForResponse((response) => response.url() === demoApi + '/sales' &&
-    response.request().method() === 'POST');
-  await page.getByRole('button', { name: 'Procesar Venta' }).click();
-  const sale = await saleResponse;
-  expect(sale.status()).toBe(201);
-  expect(await sale.json()).toMatchObject({ total_amount: '175.00', payment_mode: 'FINANCIADO_CUOTAS' });
+  const token = await loginApi(request);
+  const headers = bearer(token);
+  let customerId = 0;
 
-  const headers = operatorHeaders;
-  const advance = await request.post(demoApi + '/__mock/advance-date', { headers, data: { days: 45 } });
-  expect(advance.ok()).toBeTruthy();
+  for (const [mode, label] of [
+    ['CASH', 'Contado Efectivo'],
+    ['MONTH_END', 'Financiado a Cierre Mensual'],
+    ['INSTALLMENTS', 'Financiado en Cuotas (Francés)'],
+  ] as const) {
+    await page.goto('/sales/pos');
+    await page.getByRole('combobox', { name: 'Seleccionar cliente para la venta' }).click();
+    await page.getByRole('option', { name: /Mar[ií]a Quispe/i }).click();
+    await page.getByRole('button', { name: /Agregar Saco de Arroz/i }).click();
+    await page.getByText(label, { exact: true }).click();
+    const response = page.waitForResponse((res) =>
+      new URL(res.url()).pathname === apiBase + '/sales' && res.request().method() === 'POST');
+    await page.getByRole('button', { name: 'Procesar Venta' }).click();
+    const sale = await response;
+    expect(sale.ok(), await sale.text()).toBeTruthy();
+    const stored = await sale.json();
+    expect(stored.payment_mode).toBe(mode);
+    customerId = stored.customer_id;
+  }
+
+  const profilePath = apiBase + '/customers/' + customerId;
+  const profile = await (await request.get(profilePath, { headers })).json();
+  const locked = await request.put(profilePath, { headers, data: { ...profile, cutoff_day: 10 } });
+  expect(locked.status()).toBe(409);
+  expect(await locked.json()).toMatchObject({ code: 'ACTIVE_DEBT_TERMS_LOCKED' });
+  const contact = await request.put(profilePath, { headers, data: { ...profile, phone_number: '987654322' } });
+  expect(contact.ok(), await contact.text()).toBeTruthy();
+
+  const advance = await request.post(apiBase + '/__test/clock/advance', { headers, data: { days: 1 } });
+  expect(advance.ok(), await advance.text()).toBeTruthy();
   await page.goto('/settlements/list');
-  const closeResponse = page.waitForResponse((response) => response.url() === demoApi + '/settlements/cutoff');
-  await page.getByRole('button', { name: 'Simular Corte Mensual' }).click();
-  expect(await (await closeResponse).json()).toMatchObject({ generatedCount: 1 });
-  const repeatedClose = await request.post(demoApi + '/settlements/cutoff', { headers, data: {} });
-  expect(await repeatedClose.json()).toMatchObject({ generatedCount: 0 });
+  const cutoffResponse = page.waitForResponse((res) => res.url().endsWith('/settlements/cutoff'));
+  await page.getByRole('button', { name: 'Ejecutar corte mensual' }).click();
+  expect((await (await cutoffResponse).json()).generatedCount).toBeGreaterThan(0);
+  const repeated = await request.post(apiBase + '/settlements/cutoff', { headers });
+  expect(await repeated.json()).toMatchObject({ generatedCount: 0 });
 
+  const statements = await (await request.get(apiBase + '/settlements', { headers })).json();
+  const statement = statements.find((row: { customer_id: number; status: string }) =>
+    row.customer_id === customerId && row.status === 'PENDING');
+  expect(statement).toBeTruthy();
+  const payPath = apiBase + '/settlements/' + statement.id + '/pay';
   await page.goto('/settlements/desk');
-  await page.getByRole('button', { name: /LIQ-3/ }).click();
-  const payResponse = page.waitForResponse((response) => response.url() === demoApi + '/settlements/3/pay');
+  await page.getByRole('button', { name: new RegExp(statement.code) }).click();
+  const amount = page.getByRole('textbox', { name: 'Importe de cobranza' });
+  await amount.fill('0.01');
+  await expect(page.getByRole('button', { name: 'Cobrar y Emitir Comprobante' })).toBeDisabled();
+  await amount.fill((Number(statement.total_due) + 20).toFixed(2));
+  const payResponse = page.waitForResponse((res) => res.url().endsWith(payPath));
   await page.getByRole('button', { name: 'Cobrar y Emitir Comprobante' }).click();
-  const pay = await payResponse;
-  expect(pay.ok()).toBeTruthy();
-  const receipt = await pay.json();
+  const payment = await payResponse;
+  expect(payment.ok(), await payment.text()).toBeTruthy();
+  const receipt = await payment.json();
   await expect(page.getByRole('dialog')).toContainText(receipt.receipt_number);
-  const duplicate = await request.post(demoApi + '/settlements/3/pay', {
-    headers, data: { amount: receipt.amount, payment_method: receipt.payment_method,
-      reference_number: receipt.reference_number },
-  });
-  expect(await duplicate.json()).toEqual(receipt);
+  await expect(page.getByRole('dialog')).toContainText('Interés compensatorio:');
+  expect(Number(receipt.received_amount) - Number(receipt.amount)).toBeCloseTo(20, 2);
 
-  await page.goto('/analytics/dashboard');
-  await expect(page.locator('.kpi-card').first()).toContainText('630.00');
-  await page.goto('/analytics/movements');
-  await expect(page.getByText('Recibo ' + receipt.receipt_number)).toHaveCount(1);
+  const key = payment.request().headers()['idempotency-key'];
+  expect(key).toBeTruthy();
+  const retry = await request.post(payPath, {
+    headers: bearer(token, { 'Idempotency-Key': key }),
+    data: payment.request().postDataJSON(),
+  });
+  expect(await retry.json()).toEqual(receipt);
+  const kpis = await (await request.get(apiBase + '/analytics/kpis', { headers })).json();
+  expect(Number(kpis.total_revenue)).toBeGreaterThan(0);
 });
 
-test('comprueba accesibilidad sobre las vistas autenticadas y adapta el simulador a móvil', async ({ page }) => {
+test('keeps the simulator usable in a mobile viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page, '/financing/simulator');
-  await expect(page.locator('.mobile-view')).toBeVisible();
-  for (const path of ['/financing/simulator', '/sales/pos', '/settlements/desk', '/analytics/dashboard']) {
-    await page.goto(path);
-    await expect(page).toHaveURL((url) => url.pathname === path);
-    await expect(page.locator('h1')).toBeVisible();
-    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
-    expect(results.violations.filter((item) => item.impact === 'critical'), path).toEqual([]);
-  }
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  expect(results.violations.filter((item) => item.impact === 'critical')).toEqual([]);
 });

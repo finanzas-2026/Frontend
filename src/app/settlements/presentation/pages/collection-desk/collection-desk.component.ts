@@ -1,3 +1,4 @@
+import { businessLabel } from '../../../../shared/presentation/business-labels';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +11,7 @@ import {
   EmptyStateComponent,
   LoadingStateComponent,
   PageHeaderComponent,
+  UiIconComponent,
 } from '@shared/index';
 import { CollectionStore } from '../../state/collection.store';
 
@@ -27,12 +29,15 @@ import { CollectionStore } from '../../state/collection.store';
     PageHeaderComponent,
     LoadingStateComponent,
     EmptyStateComponent,
+    UiIconComponent,
   ],
   templateUrl: './collection-desk.component.html',
   styleUrl: './collection-desk.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CollectionDeskPageComponent implements OnInit {
+  readonly businessLabel = businessLabel;
+
   readonly store = inject(CollectionStore);
   referenceInput = '';
 
@@ -46,8 +51,17 @@ export class CollectionDeskPageComponent implements OnInit {
   }
 
   async onPay(): Promise<void> {
-    this.store.referenceNumber.set(this.referenceInput);
+    this.store.setReferenceNumber(this.referenceInput);
     await this.store.processPayment();
+  }
+
+  paymentMethodLabel(method: string): string {
+    switch (method) {
+      case 'CASH': return 'Efectivo';
+      case 'BANK_TRANSFER': return 'Transferencia bancaria';
+      case 'YAPE': return 'Yape';
+      default: return method;
+    }
   }
 
   onPrint(): void {

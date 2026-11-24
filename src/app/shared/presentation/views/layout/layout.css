@@ -1,6 +1,8 @@
 .app-layout {
   display: flex;
   height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   width: 100%;
   overflow: hidden;
 }
@@ -10,6 +12,8 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   overflow: hidden;
   background-color: #f1f5f9;
 }
@@ -20,7 +24,26 @@
   overflow-y: auto;
 }
 
+.app-layout__backdrop {
+  display: none;
+}
+
 @media (max-width: 768px) {
+  .app-layout > app-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 102;
+  }
+
+  .app-layout__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 101;
+    border: 0;
+    background: rgb(15 23 42 / 45%);
+  }
+
   .app-layout__content {
     padding: 1rem;
     padding-bottom: 4.5rem;

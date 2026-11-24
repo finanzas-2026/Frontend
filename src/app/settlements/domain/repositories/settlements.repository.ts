@@ -9,6 +9,7 @@ export interface RegisterPaymentParams {
   settlementId: number;
   amount: Money;
   paymentMethod: PaymentMethod;
+  idempotencyKey: string;
   referenceNumber?: string;
 }
 
@@ -18,7 +19,6 @@ export interface SettlementsRepository {
   getPayoffQuote(settlementId: number, targetDate?: string): Observable<PayoffQuote>;
   registerPayment(params: RegisterPaymentParams): Observable<Payment>;
   runCutoff(): Observable<{ message: string; generatedCount: number }>;
-  advanceDate(days: number): Observable<{ newDate: string }>;
 }
 
 export const SETTLEMENTS_REPOSITORY = new InjectionToken<SettlementsRepository>(

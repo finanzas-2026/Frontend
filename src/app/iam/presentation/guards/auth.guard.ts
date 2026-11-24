@@ -8,9 +8,10 @@ import { AuthStore } from '../../application/stores/auth.store';
  *
  * This protects frontend navigation only, never the backend.
  */
-export const authGuard: CanActivateFn = (_route, state) => {
+export const authGuard: CanActivateFn = async (_route, state) => {
   const authStore = inject(AuthStore);
   const router = inject(Router);
+  await authStore.initialize();
 
   if (authStore.isAuthenticated()) {
     return true;

@@ -8,13 +8,13 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import {
   EmptyStateComponent,
   LoadingStateComponent,
   PageHeaderComponent,
   ToastService,
+  UiIconComponent,
 } from '@shared/index';
 import { AuthStore } from '../../../../iam/application/stores/auth.store';
 import { ProductStore } from '../../../application/stores/product.store';
@@ -27,11 +27,11 @@ import { formatUnit } from '../../utils/unit-label';
   imports: [
     MatButtonModule,
     MatCardModule,
-    MatIconModule,
     RouterLink,
     EmptyStateComponent,
     LoadingStateComponent,
     PageHeaderComponent,
+    UiIconComponent,
   ],
   templateUrl: './inventory-monitor.html',
   styleUrl: './inventory-monitor.css',

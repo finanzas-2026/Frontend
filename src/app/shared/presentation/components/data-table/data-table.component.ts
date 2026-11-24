@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { UiIconComponent } from '../ui-icon/ui-icon.component';
 import { EmptyStateComponent } from '../empty-state/empty-state.component';
 
 export interface DataTableColumn<T> {
@@ -14,7 +14,7 @@ export interface DataTableColumn<T> {
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, EmptyStateComponent],
+  imports: [CommonModule, MatButtonModule, UiIconComponent, EmptyStateComponent],
   templateUrl: './data-table.component.html',
   styleUrl: './data-table.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

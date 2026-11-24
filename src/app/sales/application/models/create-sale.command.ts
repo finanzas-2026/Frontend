@@ -14,5 +14,6 @@ export interface CreateSaleCommand {
   graceDays?: number;
   tea?: Rate;
   firstDueDate?: string;
+  idempotencyKey?: string;
   details: CreateSaleDetailItem[];
 }

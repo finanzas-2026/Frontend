@@ -19,6 +19,8 @@ export interface CreateSaleParams {
   readonly graceDays?: number;
   readonly tea?: Rate;
   readonly firstDueDate?: string;
+  /** Stable across retries for the same sale payload. */
+  readonly idempotencyKey?: string;
   readonly details: CreateSaleDetailParams[];
 }
 

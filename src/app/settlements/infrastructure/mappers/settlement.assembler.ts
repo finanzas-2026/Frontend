@@ -90,6 +90,13 @@ export class SettlementAssembler
       settlementId: dto.settlement_id,
       customerId: dto.customer_id,
       amount,
+      receivedAmount: Money.fromString(dto.received_amount).unwrapOr(Money.zero()),
+      favourBalance: Money.fromString(dto.favour_balance).unwrapOr(Money.zero()),
+      allocation: {
+        penalty: Money.fromString(dto.allocated_to_penalty).unwrapOr(Money.zero()),
+        interest: Money.fromString(dto.allocated_to_interest).unwrapOr(Money.zero()),
+        principal: Money.fromString(dto.allocated_to_principal).unwrapOr(Money.zero()),
+      },
       paymentDate: dto.payment_date,
       paymentMethod: dto.payment_method,
       referenceNumber: dto.reference_number,

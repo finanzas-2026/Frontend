@@ -1,5 +1,6 @@
-.history-card {
-  margin-top: 1rem;
+app-data-table {
+  display: block;
+  width: 100%;
 }
 .sale-detail-overlay {
   position: fixed;
@@ -16,7 +17,7 @@
 }
 .sale-detail-modal {
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: var(--app-card-radius, 1rem);
   width: 100%;
   max-width: 560px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
@@ -39,8 +40,11 @@
   background: transparent;
   border: none;
   color: #ffffff;
-  font-size: 1.25rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
 }
 .modal-body {
   padding: 1.25rem;

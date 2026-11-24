@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import {
   DataTableColumn,
   DataTableComponent,
@@ -14,7 +13,6 @@ import { DashboardStore } from '../../state/dashboard.store';
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
     PageHeaderComponent,
     DataTableComponent,
     LoadingStateComponent,
@@ -25,9 +23,19 @@ import { DashboardStore } from '../../state/dashboard.store';
 })
 export class MovementsAuditPageComponent implements OnInit {
   readonly store = inject(DashboardStore);
+  private readonly timestampFormatter = new Intl.DateTimeFormat('es-PE', {
+    timeZone: 'America/Lima',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
 
   readonly columns: DataTableColumn<Record<string, unknown>>[] = [
-    { key: 'timestamp', header: 'Fecha / Hora', align: 'left' },
+    { key: 'timestamp', header: 'Fecha y hora (Lima)', align: 'left' },
     { key: 'eventType', header: 'Tipo Evento', align: 'center' },
     { key: 'customerName', header: 'Cliente', align: 'left' },
     { key: 'description', header: 'Detalle Transaccional', align: 'left' },
@@ -41,11 +49,25 @@ export class MovementsAuditPageComponent implements OnInit {
   tableItems(): Record<string, unknown>[] {
     return this.store.movements().map((m) => ({
       id: m.id,
-      timestamp: m.timestamp,
-      eventType: m.eventType,
+      timestamp: this.formatTimestamp(m.timestamp),
+      eventType: this.eventTypeLabel(m.eventType),
       customerName: m.customerName,
       description: m.description,
       amount: m.amount.toFormatted(),
     }));
+  }
+
+  private formatTimestamp(value: string): string {
+    const timestamp = Date.parse(value);
+    return Number.isNaN(timestamp) ? 'Fecha no disponible' : this.timestampFormatter.format(timestamp);
+  }
+
+  private eventTypeLabel(eventType: string): string {
+    switch (eventType) {
+      case 'SALE_CREATED': return 'Venta registrada';
+      case 'SETTLEMENT_CUTOFF': return 'Cierre mensual';
+      case 'PAYMENT_RECEIVED': return 'Pago recibido';
+      default: return eventType;
+    }
   }
 }

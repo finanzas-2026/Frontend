@@ -28,6 +28,7 @@ describe('Sales BC - Use Cases', () => {
   });
 
   const sampleProduct = new CatalogProduct({
+    allowsInstallments: true,
     id: 1,
     name: 'Arroz Costeño',
     sku: 'ARR-01',
@@ -42,7 +43,7 @@ describe('Sales BC - Use Cases', () => {
     customerId: 1,
     customerName: 'Juan Perez',
     storeId: 1,
-    paymentMode: PaymentModes.CONTADO,
+    paymentMode: PaymentModes.CASH,
     totalAmount: Money.fromString('40.00').unwrap(),
     status: 'COMPLETED',
     issueDate: '2026-11-09T10:00:00Z',
@@ -95,7 +96,7 @@ describe('Sales BC - Use Cases', () => {
     const result = await createSaleUseCase.execute({
       customerId: 1,
       storeId: 1,
-      paymentMode: PaymentModes.CONTADO,
+      paymentMode: PaymentModes.CASH,
       details: [{ productId: 1, quantity: 2, unitPrice: Money.fromString('20.00').unwrap() }],
     });
     expect(result.isOk()).toBe(true);

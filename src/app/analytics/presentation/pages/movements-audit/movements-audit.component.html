@@ -5,15 +5,13 @@
 
 @if (store.isLoading()) {
   <app-loading-state message="Cargando bitácora de movimientos transaccionales..." />
+} @else if (store.errorMessage(); as error) {
+  <p role="alert">{{ error }}</p>
 } @else {
-  <mat-card class="audit-card">
-    <mat-card-content>
-      <app-data-table
-        [items]="tableItems()"
-        [columns]="columns"
-        emptyTitle="Sin movimientos"
-        emptyMessage="No se han registrado operaciones en el período seleccionado."
-      />
-    </mat-card-content>
-  </mat-card>
+  <app-data-table
+    [items]="tableItems()"
+    [columns]="columns"
+    emptyTitle="Sin movimientos"
+    emptyMessage="No se han registrado operaciones en el período seleccionado."
+  />
 }
