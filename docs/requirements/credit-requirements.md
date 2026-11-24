@@ -1,92 +1,36 @@
-## US-05: Formulario de Ficha Crediticia del Cliente
-**Epic:** E03  
-**ID:** US-05
+# Customer credit requirements
 
-### Description
-***Como*** Administrador de Tienda, ***quiero*** registrar a los clientes y configurar sus parámetros crediticios personalizados, ***para*** definir sus límites de compra y condiciones de financiación.
+## US-05 Customer credit profile
 
-### Scenario 01
-* **DADO** que el Administrador registra un cliente configurando límite de crédito, días de corte/pago, moneda y tasas (compensatoria y moratoria),
-* **CUANDO** guarda la información del perfil crediticio,
-* **ENTONCES** el cliente queda habilitado para realizar compras a crédito dentro de los parámetros asignados.
+Epic E03. A store administrator can register a customer's credit account and set a credit limit, term, cycle, currency and original compensatory and penalty agreements.
 
-### Scenario 02
-* **DADO** que se ingresan valores de tasa de interés (nominal o efectiva),
-* **CUANDO** el usuario especifica los decimales de precisión,
-* **ENTONCES** el formulario permite el almacenamiento preciso de la tasa con hasta 7 decimales.
+- Both rate agreements store a decimal fraction with seven places, the corresponding reference period and capitalization days when the type is nominal.
+- Contact details remain editable while debt is open. Existing debt prevents changes to either rate agreement and the billing cycle.
 
----
+## US-06 Available credit at checkout
 
-## US-06: Pantalla de Registro de Ventas y Verificador de Crédito
-**Epic:** E03  
-**ID:** US-06
+Epic E03. A customer or store administrator can consult available credit during checkout.
 
-### Description
-***Como*** Cliente o Administrador, ***quiero*** consultar la línea de crédito disponible durante el proceso de compra, ***para*** garantizar que el monto total no sobrepase el cupo máximo asignado.
+- The interface warns when a purchase would exceed the available credit. The server rechecks available credit and inventory when it confirms the sale.
+- A successful credit sale consumes the appropriate available credit and updates the inventory.
 
-### Scenario 01
-* **DADO** que un cliente selecciona productos para una compra al crédito,
-* **CUANDO** la suma de su deuda activa más la nueva compra excede su limite_credito,
-* **ENTONCES** la interfaz deshabilita el botón de confirmación de venta y muestra un aviso de cupo insuficiente.
+## US-07 Installment schedule preview
 
-### Scenario 02
-* **DADO** que la compra está dentro del límite crediticio disponible,
-* **CUANDO** se confirma la transacción,
-* **ENTONCES** la venta se registra con éxito y el crédito disponible del cliente se actualiza dinámicamente.
+Epic E03. A customer or store administrator can review the French amortization schedule before confirming an installment sale.
 
----
+- The server applies 30E/360 to the grace period between purchase and cutoff, and capitalizes accrued compensatory interest before calculating the installment.
+- The preview shows the installment number, due date, balances, principal and interest. The last installment absorbs any rounding residue.
 
-## US-07: Generación Visual del Plan de Cuotas
-**Epic:** E03  
-**ID:** US-07
+## US-08 Monthly statement and billing cutoff
 
-### Description
-***Como*** Cliente o Administrador, ***quiero*** previsualizar el cronograma de amortización antes de confirmar una compra diferida en meses, ***para*** revisar los montos de las cuotas fijas, desglose de capital, intereses y días de gracia.
+Epic E04. A customer can read their statement to review month-end purchases, billed installments and the amount due.
 
-### Scenario 01
-* **DADO** que se simula o procesa una compra financiada en meses realizada antes de la fecha de corte,
-* **CUANDO** el sistema genera la tabla de cuotas bajo el Método Francés (base 360/30),
-* **ENTONCES** la pantalla calcula la capitalización por los días de gracia total transcurridos antes de presentar el valor de la cuota constante mensual.
+- Closing consolidates purchases, scheduled installments and accrued interest assigned to each completed cycle.
+- Purchases after the cutoff date belong to the next cycle. The entire cutoff day remains part of the current cycle.
 
-### Scenario 02
-* **DADO** que el cliente consulta la previsualización del plan de cuotas,
-* **CUANDO** carga la tabla,
-* **ENTONCES** visualiza explícitamente el detalle por cuota: número, fecha de vencimiento, saldo inicial, capital, interés, cuota fija y saldo final.
+## US-09 Collection, late interest and receipts
 
----
+Epic E04. A store administrator can collect and reconcile a customer's statement and issue a receipt.
 
-## US-08: Vista de Estado de Cuenta y Liquidación Mensual
-**Epic:** E04  
-**ID:** US-08
-
-### Description
-***Como*** Cliente, ***quiero*** consultar mi estado de cuenta al llegar la fecha de corte mensual, ***para*** conocer las compras realizadas, cuotas del periodo y el monto total a cancelar en mi fecha límite de pago.
-
-### Scenario 01
-* **DADO** que llega el día de corte mensual (fecha_corte_dia) configurado para el cliente,
-* **CUANDO** el sistema consolida el estado de cuenta,
-* **ENTONCES** la pantalla agrupa las compras a fin de mes anteriores al corte e incluye las cuotas correspondientes del periodo con sus intereses acumulados.
-
-### Scenario 02
-* **DADO** que una compra a fin de mes se efectúa después de la hora/fecha de corte,
-* **CUANDO** se emite la liquidación del ciclo actual,
-* **ENTONCES** la transacción se excluye del periodo presente y se traslada automáticamente a la liquidación del mes posterior.
-
----
-
-## US-09: Módulo de Registro de Pagos, Cálculo de Mora y Comprobante
-**Epic:** E04  
-**ID:** US-09
-
-### Description
-***Como*** Administrador de Tienda, ***quiero*** procesar el cobro de la liquidación calculando moras y aplicando el orden de prelación, ***para*** cancelar la deuda del cliente y emitir el comprobante correspondiente.
-
-### Scenario 01
-* **DADO** que un cliente acude a realizar el pago de su liquidación mensual,
-* **CUANDO** el operador intenta ingresar un monto menor al total adeudado,
-* **ENTONCES** la interfaz rechaza el registro emitiendo una alerta de prohibición de pagos parciales.
-
-### Scenario 02
-* **DADO** que el pago se realiza posterior a la fecha límite pactada,
-* **CUANDO** se procesa la transacción de cobro,
-* **ENTONCES** el sistema calcula los días de mora, aplica la tasa moratoria pactada e imputa el dinero en el orden estricto de prelación: 1° Mora → 2° Interés Compensatorio → 3° Capital.
+- An amount below the total due is rejected. Excess tender is recorded as a customer credit balance.
+- Overdue principal incurs late interest. Apply the collected amount to late interest, compensatory interest, then principal, and display the recorded allocation on the receipt.
