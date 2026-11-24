@@ -1,0 +1,141 @@
+<app-page-header
+  title="Simulador de Financiamiento Francés"
+  subtitle="Cuotas, intereses y capital con base comercial 360/30"
+/>
+
+<section class="simulator-layout">
+  <!-- Parameters Form Card -->
+  <section class="simulator-section" aria-label="Parámetros de Simulación">
+    <h2 class="parameters-title">Parámetros de Simulación</h2>
+    <ng-template #stepper let-input="input" let-label="label">
+      <button type="button" [attr.aria-label]="'Aumentar ' + label" (click)="stepNumber(input, 1)">+</button>
+      <button type="button" [attr.aria-label]="'Disminuir ' + label" (click)="stepNumber(input, -1)">−</button>
+    </ng-template>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="simulation-form">
+      <div class="form-grid form-grid--numbers">
+        <mat-form-field appearance="outline">
+          <mat-label>Capital a Financiar (S/)</mat-label>
+          <input #capital matInput type="number" formControlName="initialCapital" placeholder="1500.00" min="1" />
+          <div matSuffix class="number-stepper">
+            <ng-container *ngTemplateOutlet="stepper; context: { input: capital, label: 'capital a financiar' }" />
+          </div>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tasa del período (%)</mat-label>
+          <input #rate matInput type="number" step="0.0000001" formControlName="rateValue" placeholder="24.0000000" min="0" />
+          <div matSuffix class="number-stepper">
+            <ng-container *ngTemplateOutlet="stepper; context: { input: rate, label: 'tasa del período' }" />
+          </div>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Plazo (Meses)</mat-label>
+          <input #term matInput type="number" formControlName="totalInstallments" placeholder="3" min="1" max="60" />
+          <div matSuffix class="number-stepper">
+            <ng-container *ngTemplateOutlet="stepper; context: { input: term, label: 'plazo' }" />
+          </div>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Días de Gracia Total (tg)</mat-label>
+          <input #grace matInput type="number" formControlName="graceDays" placeholder="15" min="0" />
+          <div matSuffix class="number-stepper">
+            <ng-container *ngTemplateOutlet="stepper; context: { input: grace, label: 'días de gracia' }" />
+          </div>
+        </mat-form-field>
+      </div>
+
+      <div class="form-grid form-grid--selects">
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo de Tasa</mat-label>
+          <mat-select formControlName="rateType" aria-label="Tipo de Tasa">
+            <mat-option [value]="rateTypes.NOMINAL">Nominal</mat-option>
+            <mat-option [value]="rateTypes.EFFECTIVE">Efectiva</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Período de la tasa</mat-label>
+          <mat-select formControlName="ratePeriodDays">
+            @for (days of ratePeriods; track days) {
+              <mat-option [value]="days">{{ days === 1 ? '1 día' : days + ' días' }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (form.controls.rateType.value === rateTypes.NOMINAL) {
+          <mat-form-field appearance="outline">
+            <mat-label>Capitalización</mat-label>
+            <mat-select formControlName="compoundingDays">
+              @for (days of capitalizationPeriods; track days) {
+                <mat-option [value]="days">{{ days === 1 ? 'Cada día' : 'Cada ' + days + ' días' }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+      </div>
+
+      <div class="form-actions">
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="form.invalid || store.loading()"
+        >
+          <app-ui-icon name="calculator" aria-hidden="true" />
+          Simular Cronograma
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- KPI Summary Cards -->
+  @if (store.schedule(); as schedule) {
+    <div class="kpi-grid">
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Capital Capitalizado (P')</span>
+        <span class="kpi-value text-primary">{{ schedule.capitalizedCapital | solCurrency }}</span>
+        <span class="kpi-caption">
+          @if (schedule.graceDays > 0) {
+            {{ schedule.graceDays }} días de gracia
+          } @else {
+            Sin período de gracia
+          }
+        </span>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <span class="kpi-label">TEA Equivalente</span>
+        <span class="kpi-value">{{ schedule.normalizedRates.tea | precisionRate }}</span>
+        <span class="kpi-caption">TED: {{ schedule.normalizedRates.ted | precisionRate }}</span>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Cuota Uniforme (R)</span>
+        <span class="kpi-value text-success">{{ schedule.regularInstallment | solCurrency }}</span>
+        <span class="kpi-caption">Plazo: {{ schedule.totalInstallments }} meses</span>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Total Intereses</span>
+        <span class="kpi-value text-warning">{{ schedule.totalInterest | solCurrency }}</span>
+        <span class="kpi-caption">Total a Pagar: {{ schedule.totalPayment | solCurrency }}</span>
+      </mat-card>
+    </div>
+
+    <!-- Schedule Table -->
+    <section class="simulator-section" aria-label="Tabla de Amortización Francesa">
+      <h2>Tabla de Amortización Francesa</h2>
+      <app-schedule-table [installments]="schedule.installments" />
+    </section>
+  } @else if (store.loading()) {
+    <app-loading-state message="Procesando ecuaciones intertemporales..." />
+  } @else {
+    <app-empty-state
+      icon="calculator"
+      title="Simulador Listo"
+      message="Ingrese los parámetros de financiamiento y presione 'Simular Cronograma' para generar la tabla."
+    />
+  }
+</section>

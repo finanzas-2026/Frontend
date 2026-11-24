@@ -5,4 +5,5 @@ export interface AuditMovementDto {
   customer_name: string;
   amount: string;
   description: string;
+  reference_code?: string;
 }

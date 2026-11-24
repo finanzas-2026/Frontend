@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { LoadingStateComponent, PageHeaderComponent } from '@shared/index';
+import { LoadingStateComponent, PageHeaderComponent, UiIconComponent } from '@shared/index';
 import { DashboardStore } from '../../state/dashboard.store';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,8 +11,10 @@ import { DashboardStore } from '../../state/dashboard.store';
   imports: [
     CommonModule,
     MatCardModule,
+    MatTooltipModule,
     PageHeaderComponent,
     LoadingStateComponent,
+    UiIconComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
@@ -19,13 +22,19 @@ import { DashboardStore } from '../../state/dashboard.store';
 })
 export class DashboardPageComponent implements OnInit {
   readonly store = inject(DashboardStore);
+  private readonly chartMaximum = computed(() => Math.max(
+    1,
+    ...this.store.monthlyFlows().flatMap((flow) => [
+      flow.salesAmount.toNumber(),
+      flow.collectedAmount.toNumber(),
+    ]),
+  ));
 
   ngOnInit(): void {
     void this.store.loadDashboardData();
   }
 
   getBarHeight(amount: number): number {
-    const max = 20000;
-    return Math.min(100, Math.round((amount / max) * 100));
+    return (amount / this.chartMaximum()) * 100;
   }
 }

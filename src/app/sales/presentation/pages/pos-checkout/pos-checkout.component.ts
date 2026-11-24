@@ -7,8 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatIconModule } from '@angular/material/icon';
-import { PageHeaderComponent, SolCurrencyPipe, LoadingStateComponent } from '@shared/index';
+import { PageHeaderComponent, SolCurrencyPipe, LoadingStateComponent, UiIconComponent } from '@shared/index';
 import { PaymentMode, PaymentModes } from '@shared/domain';
 import { ScheduleTableComponent } from '@financing';
 import { CartStore } from '../../state/cart.store';
@@ -26,11 +25,11 @@ import { CatalogProduct } from '../../../domain/model/catalog-product.entity';
     MatSelectModule,
     MatInputModule,
     MatRadioModule,
-    MatIconModule,
     PageHeaderComponent,
     LoadingStateComponent,
     SolCurrencyPipe,
     ScheduleTableComponent,
+    UiIconComponent,
   ],
   templateUrl: './pos-checkout.component.html',
   styleUrl: './pos-checkout.component.scss',
@@ -54,8 +53,18 @@ export class PosCheckoutPageComponent implements OnInit {
       (p) =>
         p.name.toLowerCase().includes(query) ||
         p.sku.toLowerCase().includes(query) ||
-        p.category.toLowerCase().includes(query)
+        this.categoryLabel(p.category).toLowerCase().includes(query)
     );
+  }
+
+  categoryLabel(code: string): string {
+    switch (code) {
+      case 'GROCERIES': return 'Abarrotes';
+      case 'BEVERAGES': return 'Bebidas';
+      case 'FRESH': return 'Frescos';
+      case 'GENERAL': return 'General';
+      default: return code;
+    }
   }
 
   onCustomerChange(customerId: number): void {
@@ -65,11 +74,6 @@ export class PosCheckoutPageComponent implements OnInit {
 
   onPaymentModeChange(mode: PaymentMode): void {
     this.store.setPaymentMode(mode);
-  }
-
-  onGraceChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.store.setInstallmentParams({ graceDays: Number(input.value) });
   }
 
   async onProcessSale(): Promise<void> {

@@ -1,0 +1,46 @@
+<app-page-header title="Editar tienda" subtitle="Actualiza la información y el estado del establecimiento.">
+  <a mat-stroked-button routerLink="/stores/list"><app-ui-icon name="arrow-left" [size]="16" aria-hidden="true" /> Volver a tiendas</a>
+</app-page-header>
+
+@if (store.isLoading()) {
+  <p role="status">Cargando tienda...</p>
+} @else {
+  @if (loadError()) { <div class="page-alert" role="alert">{{ loadError() }}</div> }
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card">
+    <mat-card appearance="outlined"><mat-card-content>
+      <div class="field-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre comercial</mat-label>
+          <input matInput formControlName="businessName" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>RUC</mat-label>
+          <input matInput formControlName="taxId" maxlength="11" />
+          @if (form.controls.taxId.touched && form.controls.taxId.hasError('pattern')) {
+            <mat-error>El RUC debe contener 11 dígitos.</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Dirección</mat-label>
+          <input matInput formControlName="address" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Teléfono</mat-label>
+          <input matInput formControlName="phoneNumber" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="status">
+            @for (status of statuses; track status.value) {
+              <mat-option [value]="status.value">{{ status.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content></mat-card>
+    <div class="form-actions">
+      <a mat-stroked-button routerLink="/stores/list"><app-ui-icon name="close" [size]="16" aria-hidden="true" /> Cancelar</a>
+      <button mat-flat-button color="primary" type="submit" [disabled]="store.isLoading()"><app-ui-icon name="check" [size]="16" aria-hidden="true" /> Guardar cambios</button>
+    </div>
+  </form>
+}

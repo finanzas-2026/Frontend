@@ -7,14 +7,9 @@ import { InterestRateTypes } from '../../domain/constants/interest-rate-type.con
 import { CreditCurrencies } from '../../domain/constants/credit-currency.constant';
 import { Customer } from '../../domain/model/customer.entity';
 import { CustomerApi } from '../../infrastructure/api/customer.api';
+import { CustomerAccountRequest } from '../../infrastructure/resources/customer.resource';
 
-/**
- * Credit application state for the authenticated store.
- *
- * It coordinates `CustomerApi` with `AuthStore`, owns no session data and only
- * exposes customers whose `storeId` matches the current session. Results from
- * requests started in a previous session are discarded.
- */
+/** Loads customer credit profiles only for the current store session. */
 @Service()
 export class CustomerStore {
   private readonly customerApi = inject(CustomerApi);
@@ -69,7 +64,7 @@ export class CustomerStore {
     this.errorState.set(null);
 
     try {
-      const customers = await firstValueFrom(this.customerApi.getByStoreId(storeId));
+      const customers = await firstValueFrom(this.customerApi.getByStoreId());
       if (!this.isCurrentContext(sessionKey, storeId)) {
         return;
       }
@@ -82,6 +77,32 @@ export class CustomerStore {
     } finally {
       if (this.isCurrentContext(sessionKey, storeId)) {
         this.loadingState.set(false);
+      }
+    }
+  }
+
+  async createCustomer(customer: Customer, account: CustomerAccountRequest): Promise<Customer> {
+    const storeId = this.requireStoreId();
+    assertCreditConsistency(customer);
+    const sessionKey = this.currentSessionKey();
+    this.savingState.set(true);
+    this.errorState.set(null);
+
+    try {
+      const created = await firstValueFrom(
+        this.customerApi.create({ ...customer, id: 0, storeId, userId: 0 }, account),
+      );
+      this.ensureCurrentContext(sessionKey, storeId);
+      this.upsertCustomer(created);
+      return created;
+    } catch (error) {
+      if (this.isCurrentContext(sessionKey, storeId)) {
+        this.errorState.set(toErrorMessage(error));
+      }
+      throw error;
+    } finally {
+      if (this.isCurrentContext(sessionKey, storeId)) {
+        this.savingState.set(false);
       }
     }
   }
@@ -229,8 +250,8 @@ function assertPositiveId(id: number, entity: string): void {
 function assertCreditConsistency(customer: Customer): void {
   assertCreditLimits(customer);
   assertCreditPeriods(customer);
-  assertCompensatoryCapitalization(customer);
-  assertPenaltyCapitalization(customer);
+  assertCapitalization(customer.compensatoryRateType, customer.compensatoryCapitalizationDays, 'compensatoria');
+  assertCapitalization(customer.penaltyRateType, customer.penaltyCapitalizationDays, 'moratoria');
   assertCreditCurrency(customer);
 }
 
@@ -289,21 +310,16 @@ function assertCreditPeriods(customer: Customer): void {
   }
 }
 
-function assertCompensatoryCapitalization(customer: Customer): void {
-  if (customer.compensatoryRateType === InterestRateTypes.NOMINAL && customer.compensatoryCapitalizationDays === null) {
-    throw new AppError('CAPITALIZATION_REQUIRED', 'Una tasa nominal compensatoria requiere capitalización.', 400);
+function assertCapitalization(
+  rateType: Customer['compensatoryRateType'],
+  capitalization: Customer['compensatoryCapitalizationDays'],
+  label: string,
+): void {
+  if (rateType === InterestRateTypes.NOMINAL && capitalization === null) {
+    throw new AppError('CAPITALIZATION_REQUIRED', `Una tasa nominal ${label} requiere capitalización.`, 400);
   }
-  if (customer.compensatoryRateType === InterestRateTypes.EFECTIVA && customer.compensatoryCapitalizationDays !== null) {
-    throw new AppError('CAPITALIZATION_MUST_BE_NULL', 'Una tasa efectiva compensatoria no admite capitalización.', 400);
-  }
-}
-
-function assertPenaltyCapitalization(customer: Customer): void {
-  if (customer.penaltyRateType === InterestRateTypes.NOMINAL && customer.penaltyCapitalizationDays === null) {
-    throw new AppError('CAPITALIZATION_REQUIRED', 'Una tasa nominal moratoria requiere capitalización.', 400);
-  }
-  if (customer.penaltyRateType === InterestRateTypes.EFECTIVA && customer.penaltyCapitalizationDays !== null) {
-    throw new AppError('CAPITALIZATION_MUST_BE_NULL', 'Una tasa efectiva moratoria no admite capitalización.', 400);
+  if (rateType === InterestRateTypes.EFFECTIVE && capitalization !== null) {
+    throw new AppError('CAPITALIZATION_MUST_BE_NULL', `Una tasa efectiva ${label} no admite capitalización.`, 400);
   }
 }
 

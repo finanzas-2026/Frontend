@@ -4,11 +4,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthStore } from '../../../application/stores/auth.store';
+import { UiIconComponent } from '@shared/index';
 import { UserRoles } from '../../../domain/constants/user-roles.constant';
 import { AuthBrandPanel } from '../../components/auth-brand-panel/auth-brand-panel';
 import { TouchedErrorStateMatcher } from '../../utils/touched-error-state-matcher';
@@ -18,14 +18,13 @@ import { TouchedErrorStateMatcher } from '../../utils/touched-error-state-matche
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     AuthBrandPanel,
+    UiIconComponent,
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: TouchedErrorStateMatcher },
@@ -51,7 +50,8 @@ export class SignInPage implements OnInit {
     password: ['', [Validators.required]],
   });
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    await this.authStore.initialize();
     this.authStore.clearError();
 
     if (this.authStore.isAuthenticated()) {
@@ -90,7 +90,7 @@ export class SignInPage implements OnInit {
   private destinationForRole(): string {
     switch (this.authStore.currentRole()) {
       case UserRoles.SUPER_ADMIN:
-        return '/analytics/dashboard';
+        return '/stores';
       case UserRoles.STORE_ADMIN:
         return '/sales/pos';
       case UserRoles.CUSTOMER:

@@ -1,5 +1,13 @@
 <div class="app-layout">
-  <app-sidebar [isOpen]="isSidebarOpen()" />
+  @if (isMobile()?.matches && isSidebarOpen()) {
+    <button
+      type="button"
+      class="app-layout__backdrop"
+      aria-label="Cerrar menú lateral"
+      (click)="closeMobileSidebar()"
+    ></button>
+  }
+  <app-sidebar [isOpen]="isSidebarOpen()" [attr.inert]="isSidebarOpen() ? null : ''" />
 
   <div class="app-layout__main">
     <app-toolbar (menuToggle)="toggleSidebar()" />

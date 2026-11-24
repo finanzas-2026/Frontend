@@ -56,10 +56,9 @@
   font-weight: 700;
 }
 
-.step-number mat-icon {
+.step-number app-ui-icon {
   width: 1.1rem;
   height: 1.1rem;
-  font-size: 1.1rem;
 }
 
 .step.is-active .step-number {
@@ -113,7 +112,7 @@
 
 .summary-card {
   border: 1px solid var(--iam-border);
-  border-radius: 0.75rem;
+  border-radius: var(--app-card-radius, 1rem);
   background: #f8fafc;
   padding: 1rem 1.25rem;
 }

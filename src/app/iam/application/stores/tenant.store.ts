@@ -2,6 +2,7 @@ import { inject, signal, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Store } from '../../domain/model/store.entity';
 import { StoreApi } from '../../infrastructure/api/store.api';
+import { CreateStoreRequest } from '../../infrastructure/resources/store.resource';
 
 /**
  * Tenant collection and active-tenant state.
@@ -55,12 +56,12 @@ export class TenantStore {
     }
   }
 
-  async createTenant(tenant: Store): Promise<Store> {
+  async createTenant(request: CreateStoreRequest): Promise<Store> {
     this.loadingState.set(true);
     this.errorState.set(null);
 
     try {
-      const created = await firstValueFrom(this.storeApi.create(tenant));
+      const created = await firstValueFrom(this.storeApi.create(request));
       this.tenantsState.update((tenants) => [...tenants, created]);
       return created;
     } catch (error) {
@@ -88,14 +89,15 @@ export class TenantStore {
     }
   }
 
-  async deleteTenant(id: number): Promise<void> {
+  async deactivateTenant(id: number): Promise<Store> {
     this.loadingState.set(true);
     this.errorState.set(null);
 
     try {
-      await firstValueFrom(this.storeApi.delete(id));
-      this.tenantsState.update((tenants) => tenants.filter((tenant) => tenant.id !== id));
-      this.activeTenantState.update((active) => (active?.id === id ? null : active));
+      const deactivated = await firstValueFrom(this.storeApi.deactivate(id));
+      this.tenantsState.update((tenants) => upsert(tenants, deactivated));
+      this.activeTenantState.update((active) => (active?.id === id ? deactivated : active));
+      return deactivated;
     } catch (error) {
       this.errorState.set(toErrorMessage(error));
       throw error;

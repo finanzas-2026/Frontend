@@ -1,5 +1,14 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 100dvh;
+  flex: 0 0 auto;
+}
+
 .shell-sidebar {
   width: 270px;
+  height: 100%;
+  min-height: 100dvh;
   background: #0f172a;
   color: #f8fafc;
   display: flex;
@@ -16,18 +25,23 @@
 .sidebar-header {
   padding: 1.5rem 1.25rem 1rem;
   border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border-radius: 0.65rem;
 }
 
 .brand-title {
   font-size: 1.25rem;
   font-weight: 700;
   color: #38bdf8;
-}
-
-.brand-subtitle {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  margin-top: 0.25rem;
 }
 
 .sidebar-nav {
@@ -52,7 +66,7 @@
   padding: 0.65rem 0.75rem;
   color: #cbd5e1;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: var(--app-control-radius, 0.75rem);
   font-size: 0.875rem;
   font-weight: 500;
   transition: background-color 0.15s, color 0.15s;
@@ -70,5 +84,6 @@
 }
 
 .nav-icon {
-  font-size: 1.1rem;
+  width: 1.25rem;
+  height: 1.25rem;
 }

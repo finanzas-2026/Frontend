@@ -18,7 +18,6 @@ import { DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -28,6 +27,7 @@ import {
   LoadingStateComponent,
   PageHeaderComponent,
   ToastService,
+  UiIconComponent,
 } from '@shared/index';
 import { AuthStore } from '../../../../iam/application/stores/auth.store';
 import { CustomerStore } from '../../../application/stores/customer.store';
@@ -45,25 +45,6 @@ import {
 } from '../../../domain/constants/interest-rate-type.constant';
 import { Customer } from '../../../domain/model/customer.entity';
 
-interface CustomerFormRawValue {
-  userId: number;
-  homeAddress: string;
-  phoneNumber: string;
-  creditLimit: number;
-  maxCreditMonths: number;
-  creditCurrency: CreditCurrency;
-  cutoffDay: number;
-  paymentDueDay: number;
-  compensatoryRateType: InterestRateType;
-  compensatoryRatePeriodDays: InterestRatePeriod;
-  compensatoryCapitalizationDays: InterestRatePeriod | null;
-  compensatoryRateValue: number;
-  penaltyRateType: InterestRateType;
-  penaltyRatePeriodDays: InterestRatePeriod;
-  penaltyCapitalizationDays: InterestRatePeriod | null;
-  penaltyRateValue: number;
-};
-
 const integerValidator: ValidatorFn = (
   control: AbstractControl,
 ): ValidationErrors | null => {
@@ -76,6 +57,13 @@ const integerValidator: ValidatorFn = (
     : { integer: true };
 };
 
+const usernameValidator: ValidatorFn = (control) => {
+  const value = typeof control.value === 'string' ? control.value.trim() : '';
+  return value.length === 0 || /^[A-Za-z0-9._-]{3,50}$/.test(value)
+    ? null
+    : { usernameFormat: true };
+};
+
 @Component({
   selector: 'app-customer-form',
   standalone: true,
@@ -85,7 +73,6 @@ const integerValidator: ValidatorFn = (
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
@@ -93,6 +80,7 @@ const integerValidator: ValidatorFn = (
     EmptyStateComponent,
     LoadingStateComponent,
     PageHeaderComponent,
+    UiIconComponent,
   ],
   templateUrl: './customer-form.html',
   styleUrl: './customer-form.css',
@@ -125,19 +113,30 @@ export class CustomerForm implements OnInit {
     this.isEditMode() ? 'Guardar cambios' : 'Registrar cliente',
   );
 
-  readonly rateTypeOptions = Object.values(InterestRateTypes);
+  readonly rateTypeOptions = [
+    { value: InterestRateTypes.NOMINAL, label: 'Nominal' },
+    { value: InterestRateTypes.EFFECTIVE, label: 'Efectiva' },
+  ] as const;
   readonly periodOptions = Object.entries(InterestRatePeriods).map(([key, value]) => ({
     value,
     label: `${key} (${value} días)`,
   }));
   readonly currencyOptions = [
     { value: CreditCurrencies.PEN, label: 'PEN — Sol peruano' },
-    { value: CreditCurrencies.USD, label: 'USD — Dólar estadounidense' },
-    { value: CreditCurrencies.EUR, label: 'EUR — Euro' },
   ];
 
-  readonly form = this.formBuilder.group({
-    userId: [0, [Validators.required, Validators.min(1), integerValidator]],
+  readonly form = this.formBuilder.nonNullable.group({
+    account: this.formBuilder.nonNullable.group(
+      {
+        firstName: ['', [Validators.required]],
+        lastName: ['', [Validators.required]],
+        email: ['', [Validators.required, Validators.email]],
+        username: ['', [Validators.required, usernameValidator]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', [Validators.required]],
+      },
+      { validators: passwordsMatchValidator },
+    ),
     homeAddress: ['', [Validators.required]],
     phoneNumber: ['', [Validators.required]],
     creditLimit: [0, [Validators.required, Validators.min(0)]],
@@ -158,7 +157,7 @@ export class CustomerForm implements OnInit {
     compensatoryRatePeriodDays: [InterestRatePeriods.ANUAL as InterestRatePeriod, [Validators.required]],
     compensatoryCapitalizationDays: [InterestRatePeriods.MENSUAL as InterestRatePeriod | null],
     compensatoryRateValue: [0, [Validators.required, Validators.min(0)]],
-    penaltyRateType: [InterestRateTypes.EFECTIVA as InterestRateType, [Validators.required]],
+    penaltyRateType: [InterestRateTypes.EFFECTIVE as InterestRateType, [Validators.required]],
     penaltyRatePeriodDays: [InterestRatePeriods.MENSUAL as InterestRatePeriod, [Validators.required]],
     penaltyCapitalizationDays: [null as InterestRatePeriod | null],
     penaltyRateValue: [0, [Validators.required, Validators.min(0)]],
@@ -171,6 +170,7 @@ export class CustomerForm implements OnInit {
     }
 
     this.isEditMode.set(true);
+    this.form.controls.account.disable();
     const id = Number(rawId);
     if (!Number.isInteger(id) || id <= 0) {
       this.loadError.set('El identificador de la ficha crediticia no es válido.');
@@ -195,17 +195,15 @@ export class CustomerForm implements OnInit {
       return;
     }
 
-    if (!this.isEditMode()) {
-      this.submitError.set(
-        'El registro de nuevos perfiles crediticios está bloqueado hasta habilitar la creación sin identificador en Infrastructure/Application.',
-      );
-      return;
-    }
-
     try {
       const customer = this.buildCustomer();
-      await this.store.updateCustomer(customer);
-      this.toast.success('Ficha crediticia actualizada correctamente.');
+      if (this.isEditMode()) {
+        await this.store.updateCustomer(customer);
+        this.toast.success('Ficha crediticia actualizada correctamente.');
+      } else {
+        await this.store.createCustomer(customer, this.buildAccountRequest());
+        this.toast.success('Cliente registrado correctamente.');
+      }
       await this.router.navigate(['/credit/customers']);
     } catch {
       this.submitError.set(
@@ -215,7 +213,7 @@ export class CustomerForm implements OnInit {
   }
 
   onCompensatoryTypeChange(value: InterestRateType): void {
-    if (value === InterestRateTypes.EFECTIVA) {
+    if (value === InterestRateTypes.EFFECTIVE) {
       this.form.controls.compensatoryCapitalizationDays.setValue(null);
     } else if (this.form.controls.compensatoryCapitalizationDays.value === null) {
       this.form.controls.compensatoryCapitalizationDays.setValue(
@@ -225,7 +223,7 @@ export class CustomerForm implements OnInit {
   }
 
   onPenaltyTypeChange(value: InterestRateType): void {
-    if (value === InterestRateTypes.EFECTIVA) {
+    if (value === InterestRateTypes.EFFECTIVE) {
       this.form.controls.penaltyCapitalizationDays.setValue(null);
     } else if (this.form.controls.penaltyCapitalizationDays.value === null) {
       this.form.controls.penaltyCapitalizationDays.setValue(
@@ -239,7 +237,6 @@ export class CustomerForm implements OnInit {
       const customer = await this.store.getCustomerById(id);
       this.loadedCustomer.set(customer);
       this.form.patchValue({
-        userId: customer.userId,
         homeAddress: customer.homeAddress,
         phoneNumber: customer.phoneNumber,
         creditLimit: customer.creditLimit,
@@ -264,12 +261,17 @@ export class CustomerForm implements OnInit {
   }
 
   private buildCustomer(): Customer {
-    const value = this.form.getRawValue() as CustomerFormRawValue;
-    const current = this.loadedCustomer();
-    const storeId = this.authStore.currentStoreId() ?? 0;
+    const value = this.form.getRawValue();
+    const {
+      id = 0,
+      fullName = `${value.account.firstName.trim()} ${value.account.lastName.trim()}`.trim(),
+      storeId = this.authStore.currentStoreId() ?? 0,
+      userId = 0,
+      favourBalance = 0,
+    } = this.loadedCustomer() ?? {};
     return {
-      id: this.customerId() ?? 0, storeId: current?.storeId ?? storeId,
-      userId: Number(value.userId), homeAddress: value.homeAddress.trim(), phoneNumber: value.phoneNumber.trim(),
+      id, fullName, storeId, userId,
+      homeAddress: value.homeAddress.trim(), phoneNumber: value.phoneNumber.trim(),
       creditLimit: Number(value.creditLimit), maxCreditMonths: Number(value.maxCreditMonths),
       cutoffDay: Number(value.cutoffDay), paymentDueDay: Number(value.paymentDueDay),
       compensatoryRateType: value.compensatoryRateType, compensatoryRatePeriodDays: value.compensatoryRatePeriodDays,
@@ -278,7 +280,24 @@ export class CustomerForm implements OnInit {
       penaltyRateType: value.penaltyRateType, penaltyRatePeriodDays: value.penaltyRatePeriodDays,
       penaltyCapitalizationDays: this.resolveCapitalization(value.penaltyRateType, value.penaltyCapitalizationDays),
       penaltyRateValue: Number(value.penaltyRateValue) / 100,
-      creditCurrency: value.creditCurrency, favourBalance: current?.favourBalance ?? 0,
+      creditCurrency: value.creditCurrency, favourBalance,
+    };
+  }
+
+  private buildAccountRequest(): {
+    first_name: string;
+    last_name: string;
+    email: string;
+    username: string;
+    password: string;
+  } {
+    const { firstName, lastName, email, username, password } = this.form.controls.account.getRawValue();
+    return {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      email: email.trim(),
+      username: username.trim(),
+      password,
     };
   }
 
@@ -286,6 +305,14 @@ export class CustomerForm implements OnInit {
     type: InterestRateType,
     value: InterestRatePeriod | null,
   ): InterestRatePeriod | null {
-    return type === InterestRateTypes.EFECTIVA ? null : value;
+    return type === InterestRateTypes.EFFECTIVE ? null : value;
   }
 }
+
+const passwordsMatchValidator: ValidatorFn = (
+  group: AbstractControl,
+): ValidationErrors | null => {
+  const password = group.get('password')?.value;
+  const confirmation = group.get('confirmPassword')?.value;
+  return password === confirmation ? null : { passwordsMismatch: true };
+};

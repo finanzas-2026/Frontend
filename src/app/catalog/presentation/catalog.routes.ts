@@ -23,9 +23,7 @@ export const CATALOG_ROUTES: Routes = [
   },
   {
     path: 'inventory',
-    loadComponent: () =>
-      import('./pages/inventory-monitor/inventory-monitor').then(
-        (m) => m.InventoryMonitor,
-      ),
+    pathMatch: 'full',
+    redirectTo: 'products',
   },
 ];

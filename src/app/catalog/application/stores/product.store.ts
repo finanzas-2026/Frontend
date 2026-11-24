@@ -31,7 +31,7 @@ export class ProductStore {
       : this.productsState().filter((product) => product.storeId === storeId);
   });
   readonly activeProducts = computed(() =>
-    this.products().filter((product) => product.status === ProductStatuses.ACTIVE),
+    this.products().filter((product) => product.status !== ProductStatuses.DISCONTINUED),
   );
   readonly lowStockProducts = computed(() =>
     this.products().filter((product) => product.currentStock <= product.minStock),
@@ -67,7 +67,7 @@ export class ProductStore {
     this.errorState.set(null);
 
     try {
-      const products = await firstValueFrom(this.productApi.getByStoreId(storeId));
+      const products = await firstValueFrom(this.productApi.getByStoreId());
       if (!this.isCurrentContext(sessionKey, storeId)) {
         return;
       }
@@ -295,7 +295,6 @@ function assertStock(value: number, label: string): void {
 }
 
 function assertProductStock(product: Product): void {
-  assertPositiveId(product.id, 'producto');
   assertStock(product.currentStock, 'El stock actual');
   assertStock(product.minStock, 'El stock mínimo');
 }

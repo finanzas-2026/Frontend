@@ -10,7 +10,7 @@ import { Installment } from '../../../domain/model/installment.entity';
   template: `
     <div class="schedule-container">
       <div class="desktop-view">
-        <table class="schedule-table">
+        <table class="app-table-style schedule-table">
           <thead>
             <tr>
               <th scope="col">N° Cuota</th>
@@ -90,22 +90,8 @@ import { Installment } from '../../../domain/model/installment.entity';
         border-radius: 8px;
         overflow: hidden;
       }
-      .schedule-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.875rem;
-      }
       th {
-        background-color: #0f172a;
-        color: #f8fafc;
-        padding: 0.875rem 1rem;
-        font-weight: 600;
         text-align: left;
-      }
-      td {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid #e2e8f0;
-        color: #1e293b;
       }
       tr:hover td {
         background-color: #f8fafc;

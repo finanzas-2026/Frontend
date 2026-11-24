@@ -6,7 +6,7 @@
   padding: 3rem 1.5rem;
   text-align: center;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: var(--app-card-radius, 1rem);
   border: 1px dashed #cbd5e1;
   margin: 1rem 0;
 }

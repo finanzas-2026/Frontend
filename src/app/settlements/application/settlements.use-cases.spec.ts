@@ -52,7 +52,7 @@ describe('Settlements BC - Use Cases', () => {
     customerId: 1,
     amount: Money.fromString('828.69').unwrap(),
     paymentDate: '2026-11-10T12:00:00Z',
-    paymentMethod: 'EFECTIVO',
+    paymentMethod: 'CASH',
     receiptNumber: 'REC-001-000001',
   });
 
@@ -108,9 +108,10 @@ describe('Settlements BC - Use Cases', () => {
 
   it('debe registrar el pago y devolver el recibo comercial', async () => {
     const res = await registerPaymentUseCase.execute({
+      idempotencyKey: "test-payment",
       settlementId: 1,
       amount: Money.fromString('828.69').unwrap(),
-      paymentMethod: 'EFECTIVO',
+      paymentMethod: 'CASH',
     });
     expect(res.isOk()).toBe(true);
     if (res.isOk()) {

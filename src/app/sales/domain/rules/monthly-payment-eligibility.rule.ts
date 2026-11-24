@@ -6,7 +6,7 @@ export class MonthlyPaymentEligibilityRule {
     customer: CustomerCreditInfo,
     paymentMode: PaymentMode
   ): Result<void, DomainError> {
-    if (paymentMode === PaymentModes.FINANCIADO_MENSUAL && !customer.allowsMonthlyPayments) {
+    if (paymentMode === PaymentModes.MONTH_END && !customer.allowsMonthlyPayments) {
       return err(
         new DomainError(
           'MONTHLY_PAYMENT_NOT_ALLOWED',

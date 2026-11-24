@@ -5,7 +5,7 @@ import { addCommercialMonths, formatDate } from './french-commercial-date';
 export interface FrenchSimulationInput {
   initialCapital: number | string | Decimal;
   rateValue: number | string | Decimal;
-  rateType: 'NOMINAL' | 'EFECTIVA';
+  rateType: 'NOMINAL' | 'EFFECTIVE';
   compoundingDays?: number;
   ratePeriodDays?: number;
   totalInstallments: number; // n

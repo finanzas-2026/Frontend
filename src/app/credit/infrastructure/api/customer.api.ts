@@ -5,14 +5,18 @@ import { BaseApi } from '@shared';
 import { environment } from '../../../../environments/environment';
 import { Customer } from '../../domain/model/customer.entity';
 import { CustomerAssembler } from '../assemblers/customer.assembler';
-import { CustomerCreateRequest, CustomerResource } from '../resources/customer.resource';
+import {
+  CustomerAccountRequest,
+  CustomerCreateRequest,
+  CustomerResource,
+  CustomerUpdateRequest,
+} from '../resources/customer.resource';
 
 /**
- * HTTP adapter for the `customers` collection of JSON Server.
+ * HTTP adapter for customers in the authenticated store.
  *
  * It uses the project API base URL and endpoint configured in `environment`;
- * no host or route is hardcoded here. The caller supplies the store identifier:
- * this adapter never reads the authenticated session.
+ * Tenant scope is derived from the bearer token; store IDs are never sent.
  */
 @Service()
 export class CustomerApi extends BaseApi {
@@ -23,8 +27,8 @@ export class CustomerApi extends BaseApi {
     super(http, `${environment.salesCreditBaseApi}${environment.customersEndpoint}`);
   }
 
-  getByStoreId(storeId: number): Observable<Customer[]> {
-    return this.http.get<CustomerResource[]>(this.basePath, { params: { store_id: storeId } }).pipe(
+  getByStoreId(): Observable<Customer[]> {
+    return this.http.get<CustomerResource[]>(this.basePath).pipe(
       map((resources) => this.assembler.toEntitiesFromResponse(resources)),
       catchError((error: unknown) => this.handleError(error)),
     );
@@ -37,10 +41,18 @@ export class CustomerApi extends BaseApi {
     );
   }
 
-  create(customer: Customer): Observable<Customer> {
+  create(customer: Customer, account: CustomerAccountRequest): Observable<Customer> {
     const resource = this.assembler.toResourceFromEntity(customer);
-    const { id: _id, ...request } = resource;
-    return this.http.post<CustomerResource>(this.basePath, request as CustomerCreateRequest).pipe(
+    const {
+      id: _id,
+      store_id: _storeId,
+      user_id: _userId,
+      favour_balance: _favourBalance,
+      full_name: _fullName,
+      ...profile
+    } = resource;
+    const request: CustomerCreateRequest = { ...profile, ...account };
+    return this.http.post<CustomerResource>(this.basePath, request).pipe(
       map((created) => this.assembler.toEntityFromResource(created)),
       catchError((error: unknown) => this.handleError(error)),
     );
@@ -48,7 +60,15 @@ export class CustomerApi extends BaseApi {
 
   update(id: number, customer: Customer): Observable<Customer> {
     const resource = this.assembler.toResourceFromEntity(customer);
-    return this.http.put<CustomerResource>(`${this.basePath}/${id}`, resource).pipe(
+    const {
+      id: _id,
+      store_id: _storeId,
+      user_id: _userId,
+      favour_balance: _favourBalance,
+      full_name: _fullName,
+      ...request
+    } = resource;
+    return this.http.put<CustomerResource>(`${this.basePath}/${id}`, request as CustomerUpdateRequest).pipe(
       map((updated) => this.assembler.toEntityFromResource(updated)),
       catchError((error: unknown) => this.handleError(error)),
     );

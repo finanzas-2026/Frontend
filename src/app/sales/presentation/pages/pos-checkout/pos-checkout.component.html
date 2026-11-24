@@ -9,13 +9,16 @@
   <div class="pos-layout">
     <!-- Left: Product Catalog & Customer Selection -->
     <section class="catalog-section" aria-label="Catálogo de productos y cliente">
-      <mat-card class="customer-card">
+      <mat-card class="customer-card" appearance="outlined">
         <mat-card-header>
-          <mat-card-title>Cliente y Línea de Crédito</mat-card-title>
+          <mat-card-title class="pos-panel-title">
+            <app-ui-icon name="user" [size]="20" aria-hidden="true" />
+            Cliente y línea de crédito
+          </mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="customer-selector-row">
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
               <mat-label>Seleccionar Cliente</mat-label>
               <mat-select
                 [value]="store.selectedCustomer()?.id"
@@ -62,7 +65,8 @@
 
       <!-- Search Catalog -->
       <div class="catalog-search-bar">
-        <mat-form-field appearance="outline" class="search-input">
+        <h2 class="catalog-title">Catálogo de productos</h2>
+        <mat-form-field appearance="outline" class="search-input" subscriptSizing="dynamic">
           <mat-label>Buscar producto por nombre o SKU</mat-label>
           <input
             matInput
@@ -79,9 +83,14 @@
         @for (prod of filteredProducts(); track prod.id) {
           <div class="product-item-card" role="listitem">
             <div class="prod-details">
-              <span class="prod-category">{{ prod.category }}</span>
+              <span class="prod-category">{{ categoryLabel(prod.category) }}</span>
               <h3 class="prod-title">{{ prod.name }}</h3>
-              <div class="prod-sku">SKU: {{ prod.sku }} | Stock: {{ prod.stock }} unid.</div>
+              <div class="product-meta">
+                <span class="prod-sku">{{ prod.sku }}</span>
+                <span class="stock-label" [class.stock-empty]="prod.stock <= 0">
+                  {{ prod.stock > 0 ? prod.stock + ' disponibles' : 'Sin stock' }}
+                </span>
+              </div>
               <div class="prod-price">{{ store.priceFor(prod).toFormatted() }}</div>
             </div>
             <button
@@ -92,25 +101,30 @@
               (click)="store.addItem(prod, 1)"
               [attr.aria-label]="'Agregar ' + prod.name + ' al carrito'"
             >
-              + Agregar
+              <app-ui-icon name="add" [size]="16" aria-hidden="true" />
+              Agregar
             </button>
           </div>
+        } @empty {
+          <p class="catalog-empty">No hay productos que coincidan con la búsqueda.</p>
         }
       </div>
     </section>
 
     <!-- Right: Cart & Checkout -->
     <aside class="cart-section" aria-label="Carrito de compra y liquidación">
-      <mat-card class="cart-card">
+      <mat-card class="cart-card" appearance="outlined">
         <mat-card-header>
-          <mat-card-title>
-            Carrito de Compra ({{ store.itemsCount() }} unid.)
+          <mat-card-title class="pos-panel-title">
+            <app-ui-icon name="cart" [size]="20" aria-hidden="true" />
+            Carrito de compra
+            <span class="cart-count">{{ store.itemsCount() }} unid.</span>
           </mat-card-title>
         </mat-card-header>
         <mat-card-content>
           @if (store.items().length === 0) {
             <div class="empty-cart-message">
-              <span class="cart-empty-icon" aria-hidden="true">🛒</span>
+              <app-ui-icon class="cart-empty-icon" name="cart" [size]="40" aria-hidden="true" />
               <p>El carrito de compras está vacío.</p>
               <small>Seleccione productos del catálogo para comenzar.</small>
             </div>
@@ -149,7 +163,7 @@
                     (click)="store.removeItem(item.product.id)"
                     aria-label="Eliminar producto"
                   >
-                    ✕
+                    <app-ui-icon name="close" [size]="18" aria-hidden="true" />
                   </button>
                 </div>
               }
@@ -164,20 +178,20 @@
                 aria-label="Modalidad de pago"
                 class="payment-mode-group"
               >
-                <mat-radio-button [value]="modes.CONTADO">
+                <mat-radio-button [value]="modes.CASH">
                   Contado Efectivo
                 </mat-radio-button>
-                <mat-radio-button [value]="modes.FINANCIADO_MENSUAL">
+                <mat-radio-button [value]="modes.MONTH_END">
                   Financiado a Cierre Mensual
                 </mat-radio-button>
-                <mat-radio-button [value]="modes.FINANCIADO_CUOTAS">
+                <mat-radio-button [value]="modes.INSTALLMENTS">
                   Financiado en Cuotas (Francés)
                 </mat-radio-button>
               </mat-radio-group>
             </div>
 
             <!-- Installment Parameters if FINANCIADO_CUOTAS -->
-            @if (store.paymentMode() === modes.FINANCIADO_CUOTAS) {
+            @if (store.paymentMode() === modes.INSTALLMENTS) {
               <div class="cuotas-params-box">
                 <div class="cuotas-fields-row">
                   <mat-form-field appearance="outline" class="mini-field">
@@ -195,19 +209,9 @@
                   </mat-form-field>
 
                   @if (store.selectedCustomer()?.terms; as terms) {
-                    <p>Tasa pactada {{ terms.rateValue | percent:'1.0-7' }} · {{ terms.rateType }} · {{ terms.ratePeriodDays }} días</p>
+                    <p>Tasa pactada {{ terms.rateValue | percent:'1.0-7' }} · {{ terms.rateType === 'NOMINAL' ? 'Nominal' : 'Efectiva' }} · {{ terms.ratePeriodDays }} días</p>
                   }
 
-                  <mat-form-field appearance="outline" class="mini-field">
-                    <mat-label>Días Gracia</mat-label>
-                    <input
-                      matInput
-                      type="number"
-                      [value]="store.graceDays()"
-                      (change)="onGraceChange($event)"
-                      aria-label="Días de gracia total"
-                    />
-                  </mat-form-field>
                 </div>
 
                 @if (store.schedulePreview(); as sched) {
@@ -215,6 +219,7 @@
                     <span class="preview-title">
                       Cuota Estimada: {{ sched.regularInstallment.toFormatted() }} / mes
                     </span>
+                    <p>Días de gracia calculados según el ciclo del cliente: {{ sched.graceDays }}.</p>
                     <div class="table-scroll-wrapper">
                       <app-schedule-table [installments]="sched.installments" />
                     </div>
@@ -226,13 +231,15 @@
             <!-- Warnings & Validation Messages -->
             @if (store.isCreditExceeded()) {
               <div class="alert-box alert-danger" role="alert">
-                ⚠️ <strong>Línea de crédito excedida:</strong> El total de la venta ({{ store.totalAmount().toFormatted() }}) supera el saldo disponible ({{ store.availableCredit().toFormatted() }}).
+                <app-ui-icon class="alert-icon" name="warning" [size]="18" aria-hidden="true" />
+                <strong>Línea de crédito excedida:</strong> El total de la venta ({{ store.totalAmount().toFormatted() }}) supera el saldo disponible ({{ store.availableCredit().toFormatted() }}).
               </div>
             }
 
             @if (!store.isMonthlyEligible()) {
               <div class="alert-box alert-danger" role="alert">
-                ⛔ <strong>Modalidad no autorizada:</strong> El cliente seleccionado no tiene permiso para compras al crédito mensual.
+                <app-ui-icon class="alert-icon" name="blocked" [size]="18" aria-hidden="true" />
+                <strong>Modalidad no autorizada:</strong> El cliente seleccionado no tiene permiso para compras al crédito mensual.
               </div>
             }
 
@@ -248,6 +255,13 @@
               </div>
             </div>
 
+            @if (!store.selectedCustomer()) {
+              <div class="alert-box alert-danger checkout-alert" role="alert">
+                <app-ui-icon name="warning" [size]="18" aria-hidden="true" />
+                <span>Selecciona un cliente para procesar la venta.</span>
+              </div>
+            }
+
             <!-- Submit Button -->
             <div class="cart-actions">
               <button
@@ -256,7 +270,7 @@
                 (click)="store.clearCart()"
                 [disabled]="store.isSubmitting()"
               >
-                Vaciar
+                <app-ui-icon name="cart-remove" [size]="16" aria-hidden="true" /> Vaciar
               </button>
               <button
                 mat-flat-button
@@ -266,7 +280,7 @@
                 [disabled]="!store.canSubmit()"
                 (click)="onProcessSale()"
               >
-                {{ store.isSubmitting() ? 'Procesando Venta...' : 'Procesar Venta' }}
+                <app-ui-icon name="check" [size]="16" aria-hidden="true" /> {{ store.isSubmitting() ? 'Procesando Venta...' : 'Procesar Venta' }}
               </button>
             </div>
           }

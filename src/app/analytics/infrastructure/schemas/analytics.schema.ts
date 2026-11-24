@@ -20,4 +20,5 @@ export const auditMovementSchema = z.object({
   customer_name: z.string(),
   amount: z.string(),
   description: z.string(),
+  reference_code: z.string().optional(),
 });

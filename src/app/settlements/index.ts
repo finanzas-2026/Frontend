@@ -20,7 +20,6 @@ export * from './application/use-cases/get-settlement-by-id.use-case';
 export * from './application/use-cases/get-payoff-quote.use-case';
 export * from './application/use-cases/register-payment.use-case';
 export * from './application/use-cases/run-cutoff.use-case';
-export * from './application/use-cases/advance-date.use-case';
 
 // Infrastructure Providers
 export * from './infrastructure/settlements.providers';

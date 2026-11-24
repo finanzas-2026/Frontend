@@ -1,0 +1,162 @@
+<svg
+  class="ui-icon"
+  [attr.width]="size()"
+  [attr.height]="size()"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.8"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  @switch (name()) {
+    @case ('add') {
+      <path d="M12 5v14M5 12h14" />
+    }
+    @case ('analytics') {
+      <path d="M3 3v18h18" />
+      <rect x="7" y="12" width="3" height="6" rx="0.6" />
+      <rect x="13" y="8" width="3" height="10" rx="0.6" />
+      <rect x="19" y="5" width="2" height="13" rx="0.6" />
+    }
+    @case ('arrow-left') {
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    }
+    @case ('arrow-right') {
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    }
+    @case ('audit') {
+      <rect x="5" y="4" width="14" height="17" rx="2" />
+      <path d="M9 4V3h6v1M9 9h6M9 13h6M9 17h4" />
+    }
+    @case ('blocked') {
+      <circle cx="12" cy="12" r="9" />
+      <path d="m5.6 5.6 12.8 12.8" />
+    }
+    @case ('cart') {
+      <circle cx="9" cy="20" r="1" />
+      <circle cx="18" cy="20" r="1" />
+      <path d="M3 4h2l2.2 10.3a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L21 8H6" />
+    }
+    @case ('cart-remove') {
+      <circle cx="9" cy="20" r="1" />
+      <circle cx="18" cy="20" r="1" />
+      <path d="M3 4h2l2.2 10.3a2 2 0 0 0 2 1.6h3.3M6 8h14l-1 4" />
+      <path d="m15.5 14.5 5 5m0-5-5 5" />
+    }
+    @case ('calculator') {
+      <rect x="4" y="2.5" width="16" height="19" rx="2" />
+      <path d="M8 6h8v3H8zM8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01" />
+    }
+    @case ('check') {
+      <path d="m5 12 4 4L19 6" />
+    }
+    @case ('check-circle') {
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12 2.5 2.5L16 9" />
+    }
+    @case ('chevron-left') {
+      <path d="m15 18-6-6 6-6" />
+    }
+    @case ('chevron-right') {
+      <path d="m9 18 6-6-6-6" />
+    }
+    @case ('clipboard') {
+      <rect x="5" y="4" width="14" height="17" rx="2" />
+      <path d="M9 4V3h6v1M9 9h6M9 13h6M9 17h4" />
+    }
+    @case ('close') {
+      <path d="m18 6-12 12M6 6l12 12" />
+    }
+    @case ('credit-card') {
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 10h18M7 15h4" />
+    }
+    @case ('edit') {
+      <path d="m15 5 4 4M4 20l4-.8L19 8a2.1 2.1 0 0 0-3-3L5 16z" />
+    }
+    @case ('error') {
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v5M12 16h.01" />
+    }
+    @case ('eye') {
+      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+      <circle cx="12" cy="12" r="2.5" />
+    }
+    @case ('eye-off') {
+      <path d="m3 3 18 18M10.6 6.2A10.8 10.8 0 0 1 12 6c6.5 0 10 6 10 6a15 15 0 0 1-3 3.6M6.2 6.2C3.5 7.8 2 12 2 12s3.5 6 10 6a10 10 0 0 0 4-.8" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    }
+    @case ('folder') {
+      <path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2h7.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z" />
+      <path d="M3.5 9h17" />
+    }
+    @case ('inbox') {
+      <path d="M4 4h16l2 10v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5z" />
+      <path d="M2 14h5l2 3h6l2-3h5M8 8h8" />
+    }
+    @case ('lock') {
+      <rect x="4" y="10" width="16" height="11" rx="2" />
+      <path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v3" />
+    }
+    @case ('logout') {
+      <path d="M10 17l5-5-5-5M15 12H3" />
+      <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
+    }
+    @case ('menu') {
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    }
+    @case ('package') {
+      <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z" />
+      <path d="m4.5 7.7 7.5 4.2 7.5-4.2M12 12v8.5M8 5.2l8 4.5" />
+    }
+    @case ('printer') {
+      <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2" />
+      <path d="M7 14h10v7H7zM17 11h.01" />
+    }
+    @case ('receipt') {
+      <path d="M6 3h12v18l-2.5-1.7L12 21l-3.5-1.7L6 21z" />
+      <path d="M9 8h6M9 12h6M9 16h4" />
+    }
+    @case ('search') {
+      <circle cx="10.8" cy="10.8" r="6.8" />
+      <path d="m16 16 5 5" />
+    }
+    @case ('search-off') {
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="m15.5 15.5 5.5 5.5M7.5 10.5h6M2.5 2.5l19 19" />
+    }
+    @case ('store') {
+      <path d="M3 10h18l-1.5-6h-15z" />
+      <path d="M4 10v10h16V10M9 20v-6h6v6" />
+      <path d="M3 10a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 2 0" />
+    }
+    @case ('tag') {
+      <path d="M20 13 13 20a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 2 11.7V5a2 2 0 0 1 2-2h6.7a2 2 0 0 1 1.4.6l6.9 6.6a2 2 0 0 1 1 2.8z" />
+      <circle cx="7.5" cy="7.5" r="1" />
+    }
+    @case ('trending-down') {
+      <path d="m3 7 6 6 4-4 8 9" />
+      <path d="M15 18h6v-6" />
+    }
+    @case ('trending-up') {
+      <path d="M3 17 9 11l4 4 8-9" />
+      <path d="M15 6h6v6" />
+    }
+    @case ('user') {
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21v-1a8 8 0 0 1 16 0v1z" />
+    }
+    @case ('users') {
+      <path d="M16 21v-1.5a4.5 4.5 0 0 0-4.5-4.5h-3A4.5 4.5 0 0 0 4 19.5V21z" />
+      <circle cx="10" cy="8" r="3.5" />
+      <path d="M16 4.7a3.5 3.5 0 0 1 0 6.6M19 15.5a4.5 4.5 0 0 1 2 3.8V21h-2" />
+    }
+    @case ('warning') {
+      <path d="M10.3 4.4 2.7 18a2 2 0 0 0 1.8 3h15a2 2 0 0 0 1.8-3L13.7 4.4a2 2 0 0 0-3.4 0z" />
+      <path d="M12 9v4M12 17h.01" />
+    }
+  }
+</svg>

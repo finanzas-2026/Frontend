@@ -6,16 +6,12 @@
 @if (isLoading()) {
   <app-loading-state message="Cargando registro histórico de ventas..." />
 } @else {
-  <mat-card class="history-card">
-    <mat-card-content>
-      <app-data-table
-        [items]="tableItems()"
-        [columns]="columns"
-        emptyTitle="No hay ventas registradas"
-        emptyMessage="Aún no se han emitido ventas en este punto de venta."
-      />
-    </mat-card-content>
-  </mat-card>
+  <app-data-table
+    [items]="tableItems()"
+    [columns]="columns"
+    emptyTitle="No hay ventas registradas"
+    emptyMessage="Aún no se han emitido ventas en este punto de venta."
+  />
 
   <!-- Selected Sale Details Dialog -->
   @if (selectedSale(); as sale) {
@@ -36,20 +32,20 @@
             (click)="selectedSale.set(null)"
             aria-label="Cerrar detalle"
           >
-            ✕
+            <app-ui-icon name="close" [size]="18" aria-hidden="true" />
           </button>
         </div>
         <div class="modal-body">
           <div class="detail-meta">
             <p><strong>Cliente:</strong> {{ sale.customerName }}</p>
-            <p><strong>Modalidad:</strong> {{ sale.paymentMode }}</p>
+            <p><strong>Modalidad:</strong> {{ businessLabel(sale.paymentMode) }}</p>
             <p><strong>Fecha:</strong> {{ sale.issueDate | date: 'dd/MM/yyyy HH:mm' }}</p>
             @if (sale.installmentsCount) {
               <p><strong>Plazo:</strong> {{ sale.installmentsCount }} cuotas</p>
             }
           </div>
 
-          <table class="detail-items-table">
+          <table class="app-table-style detail-items-table">
             <thead>
               <tr>
                 <th>Ítem</th>

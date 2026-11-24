@@ -1,14 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
-import { BaseApi } from '@shared';
+import { BaseApi } from '@shared/infrastructure/base-api';
 import { environment } from '../../../../environments/environment';
 import { Store } from '../../domain/model/store.entity';
 import { StoreAssembler } from '../assemblers/store.assembler';
-import { StoreResource } from '../resources/store.resource';
+import { CreateStoreRequest, StoreResource, UpdateStoreRequest } from '../resources/store.resource';
 
 /**
- * HTTP adapter for the `stores` collection of JSON Server.
+ * HTTP adapter for platform store administration.
  *
  * It uses the project API base URL and endpoint configured in `environment`;
  * no host or route is hardcoded here.
@@ -40,10 +40,9 @@ export class StoreApi extends BaseApi {
       );
   }
 
-  create(store: Store): Observable<Store> {
-    const resource = this.assembler.toResourceFromEntity(store);
+  create(request: CreateStoreRequest): Observable<Store> {
     return this.http
-      .post<StoreResource>(this.basePath, resource)
+      .post<StoreResource>(this.basePath, request)
       .pipe(
         map((created) => this.assembler.toEntityFromResource(created)),
         catchError((error: unknown) => this.handleError(error))
@@ -52,17 +51,21 @@ export class StoreApi extends BaseApi {
 
   update(store: Store): Observable<Store> {
     const resource = this.assembler.toResourceFromEntity(store);
+    const { id: _storeId, created_at: _createdAt, ...request } = resource;
     return this.http
-      .put<StoreResource>(`${this.basePath}/${store.id}`, resource)
+      .put<StoreResource>(`${this.basePath}/${store.id}`, request as UpdateStoreRequest)
       .pipe(
         map((updated) => this.assembler.toEntityFromResource(updated)),
         catchError((error: unknown) => this.handleError(error))
       );
   }
 
-  delete(id: number): Observable<void> {
+  deactivate(id: number): Observable<Store> {
     return this.http
-      .delete<void>(`${this.basePath}/${id}`)
-      .pipe(catchError((error: unknown) => this.handleError(error)));
+      .patch<StoreResource>(`${this.basePath}/${id}`, { status: 'INACTIVE' })
+      .pipe(
+        map((resource) => this.assembler.toEntityFromResource(resource)),
+        catchError((error: unknown) => this.handleError(error)),
+      );
   }
 }

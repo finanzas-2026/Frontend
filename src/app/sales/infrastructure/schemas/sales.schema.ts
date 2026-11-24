@@ -3,17 +3,14 @@ import { z } from 'zod';
 export const createSaleDetailSchema = z.object({
   product_id: z.number().int().positive(),
   quantity: z.number().int().positive(),
-  unit_price: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Formato de precio inválido'),
 });
 
 export const createSaleSchema = z.object({
   customer_id: z.number().int().positive(),
-  store_id: z.number().int().positive(),
-  payment_mode: z.enum(['CONTADO', 'FINANCIADO_MENSUAL', 'FINANCIADO_CUOTAS']),
+  payment_mode: z.enum(['CASH', 'MONTH_END', 'INSTALLMENTS']),
   installments_count: z.number().int().positive().optional(),
   grace_days: z.number().int().nonnegative().optional(),
   tea: z.string().optional(),
-  first_due_date: z.iso.date().optional(),
   details: z.array(createSaleDetailSchema).min(1, 'La venta debe contener al menos un detalle'),
 });
 
@@ -33,7 +30,7 @@ export const saleResponseSchema = z.object({
   customer_id: z.number(),
   customer_name: z.string(),
   store_id: z.number(),
-  payment_mode: z.enum(['CONTADO', 'FINANCIADO_MENSUAL', 'FINANCIADO_CUOTAS']),
+  payment_mode: z.enum(['CASH', 'MONTH_END', 'INSTALLMENTS']),
   total_amount: z.string(),
   status: z.string(),
   installments_count: z.number().optional(),
@@ -51,7 +48,7 @@ export const customerCreditInfoSchema = z.object({
   current_debt: z.string(),
   allows_monthly_payments: z.boolean(),
   max_credit_months: z.number().int().positive().optional(),
-  compensatory_rate_type: z.enum(['NOMINAL', 'EFECTIVA']).optional(),
+  compensatory_rate_type: z.enum(['NOMINAL', 'EFFECTIVE']).optional(),
   compensatory_rate_value: z.string().optional(),
   compensatory_rate_period_days: z.number().optional(),
   compensatory_capitalization_days: z.number().nullable().optional(),
@@ -64,6 +61,6 @@ export const catalogProductSchema = z.object({
   category: z.string(),
   unit_price: z.string(),
   credit_unit_price: z.string().optional(),
-  allows_monthly_payments: z.boolean().optional(),
+  allows_installments: z.boolean(),
   stock: z.number(),
 });

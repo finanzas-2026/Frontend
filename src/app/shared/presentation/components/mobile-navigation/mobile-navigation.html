@@ -1,18 +1,34 @@
 <nav class="mobile-bottom-bar" aria-label="Navegación móvil rápida">
-  <a routerLink="/analytics/dashboard" routerLinkActive="active-mobile-link" class="mobile-item">
-    <span class="mob-icon">📊</span>
-    <span>MIS</span>
-  </a>
-  <a routerLink="/sales/pos" routerLinkActive="active-mobile-link" class="mobile-item">
-    <span class="mob-icon">🛒</span>
-    <span>POS</span>
-  </a>
-  <a routerLink="/financing/simulator" routerLinkActive="active-mobile-link" class="mobile-item">
-    <span class="mob-icon">🧮</span>
-    <span>Simulador</span>
-  </a>
-  <a routerLink="/settlements/desk" routerLinkActive="active-mobile-link" class="mobile-item">
-    <span class="mob-icon">💳</span>
-    <span>Caja</span>
-  </a>
+  @if (authStore.currentRole() === UserRoles.STORE_ADMIN) {
+    <a routerLink="/analytics/dashboard" routerLinkActive="active-mobile-link" ariaCurrentWhenActive="page" class="mobile-item">
+      <app-ui-icon class="mob-icon" name="analytics" aria-hidden="true" />
+      <span>MIS</span>
+    </a>
+    <a routerLink="/sales/pos" routerLinkActive="active-mobile-link" ariaCurrentWhenActive="page" class="mobile-item">
+      <app-ui-icon class="mob-icon" name="cart" aria-hidden="true" />
+      <span>POS</span>
+    </a>
+    <a routerLink="/financing/simulator" routerLinkActive="active-mobile-link" ariaCurrentWhenActive="page" class="mobile-item">
+      <app-ui-icon class="mob-icon" name="calculator" aria-hidden="true" />
+      <span>Simulador</span>
+    </a>
+    <a routerLink="/settlements/desk" routerLinkActive="active-mobile-link" ariaCurrentWhenActive="page" class="mobile-item">
+      <app-ui-icon class="mob-icon" name="credit-card" aria-hidden="true" />
+      <span>Caja</span>
+    </a>
+  } @else if (authStore.currentRole() === UserRoles.SUPER_ADMIN) {
+    <a routerLink="/stores" routerLinkActive="active-mobile-link" ariaCurrentWhenActive="page" class="mobile-item">
+      <app-ui-icon class="mob-icon" name="store" aria-hidden="true" />
+      <span>Tiendas</span>
+    </a>
+  } @else if (authStore.currentRole() === UserRoles.CUSTOMER) {
+    <a routerLink="/settlements/portal" routerLinkActive="active-mobile-link" ariaCurrentWhenActive="page" class="mobile-item">
+      <app-ui-icon class="mob-icon" name="user" aria-hidden="true" />
+      <span>Mi cuenta</span>
+    </a>
+    <a routerLink="/financing/simulator" routerLinkActive="active-mobile-link" ariaCurrentWhenActive="page" class="mobile-item">
+      <app-ui-icon class="mob-icon" name="calculator" aria-hidden="true" />
+      <span>Simulador</span>
+    </a>
+  }
 </nav>

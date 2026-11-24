@@ -8,15 +8,14 @@ import {
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
 import {
   EmptyStateComponent,
   LoadingStateComponent,
   PageHeaderComponent,
+  UiIconComponent,
 } from '@shared/index';
 import { AuthStore } from '../../../../iam/application/stores/auth.store';
 import { CustomerStore } from '../../../application/stores/customer.store';
@@ -28,14 +27,13 @@ import { Customer } from '../../../domain/model/customer.entity';
   imports: [
     DecimalPipe,
     MatButtonModule,
-    MatCardModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     RouterLink,
     EmptyStateComponent,
     LoadingStateComponent,
     PageHeaderComponent,
+    UiIconComponent,
   ],
   templateUrl: './customer-list.html',
   styleUrl: './customer-list.css',
@@ -55,6 +53,7 @@ export class CustomerList implements OnInit {
         return true;
       }
       return (
+        customer.fullName.toLocaleLowerCase().includes(query) ||
         String(customer.id).includes(query) ||
         customer.phoneNumber.toLocaleLowerCase().includes(query)
       );
@@ -80,10 +79,6 @@ export class CustomerList implements OnInit {
   }
 
   onEdit(customer: Customer): void {
-    void this.router.navigate(['/credit/customers', customer.id, 'edit']);
-  }
-
-  onView(customer: Customer): void {
     void this.router.navigate(['/credit/customers', customer.id, 'edit']);
   }
 }

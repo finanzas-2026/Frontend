@@ -8,6 +8,7 @@ import { DashboardPageComponent } from './dashboard.component';
 import { provideAnalytics } from '../../../infrastructure/analytics.providers';
 import { DashboardStore } from '../../state/dashboard.store';
 import { DashboardKpis } from '../../../domain/model/dashboard-kpis.vo';
+import { MonthlyFlow } from '../../../domain/model/monthly-flow.vo';
 
 describe('DashboardPageComponent', () => {
   let component: DashboardPageComponent;
@@ -36,10 +37,14 @@ describe('DashboardPageComponent', () => {
   });
 
   it('debe calcular alturas proporcionales de barra para el gráfico', () => {
+    store.monthlyFlows.set([new MonthlyFlow({
+      month: '2026-11',
+      salesAmount: Money.fromDecimal(new Decimal(10000)),
+      collectedAmount: Money.fromDecimal(new Decimal(20000)),
+    })]);
     expect(component.getBarHeight(0)).toBe(0);
     expect(component.getBarHeight(10000)).toBe(50);
     expect(component.getBarHeight(20000)).toBe(100);
-    expect(component.getBarHeight(30000)).toBe(100);
   });
 
   it('debe reflejar kpis en el template cuando están cargados', () => {

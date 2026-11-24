@@ -10,6 +10,7 @@ export interface Store extends BaseEntity {
   readonly businessName: string;
   readonly taxId: string;
   readonly address: string;
+  readonly phoneNumber?: string;
   readonly createdAt: string;
   readonly status: StoreStatus;
 }

@@ -7,8 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { SolCurrencyPipe } from '@shared/index';
+import { SolCurrencyPipe, UiIconComponent } from '@shared/index';
 import { ProductStatuses } from '../../../domain/constants/product-status.constant';
 import { Product } from '../../../domain/model/product.entity';
 import { formatUnit } from '../../utils/unit-label';
@@ -16,7 +15,7 @@ import { formatUnit } from '../../utils/unit-label';
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule, SolCurrencyPipe],
+  imports: [MatButtonModule, SolCurrencyPipe, UiIconComponent],
   templateUrl: './product-card.html',
   styleUrl: './product-card.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,7 +31,7 @@ export class ProductCard {
   private readonly imageFailed = signal(false);
 
   readonly isActive = computed(
-    () => this.product().status === ProductStatuses.ACTIVE,
+    () => this.product().status !== ProductStatuses.DISCONTINUED,
   );
   readonly isOutOfStock = computed(() => this.product().currentStock === 0);
   readonly isLowStock = computed(

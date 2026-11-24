@@ -32,7 +32,12 @@ export const paymentResponseSchema = z.object({
   customer_id: z.number(),
   amount: z.string(),
   payment_date: z.string(),
-  payment_method: z.enum(['EFECTIVO', 'TRANSFERENCIA', 'YAPE']),
+  payment_method: z.enum(['CASH', 'BANK_TRANSFER', 'YAPE']),
   reference_number: z.string().optional(),
   receipt_number: z.string(),
+  received_amount: z.string(),
+  favour_balance: z.string(),
+  allocated_to_penalty: z.string(),
+  allocated_to_interest: z.string(),
+  allocated_to_principal: z.string(),
 });

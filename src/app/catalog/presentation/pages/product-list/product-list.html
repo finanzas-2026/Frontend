@@ -2,19 +2,15 @@
   title="Catálogo de productos"
   subtitle="Administra la oferta comercial, precios y disponibilidad de tu establecimiento."
 >
-  <a mat-stroked-button routerLink="/catalog/inventory">
-    <mat-icon aria-hidden="true">inventory_2</mat-icon>
-    Monitor de inventario
-  </a>
   <a mat-flat-button color="primary" routerLink="/catalog/products/new">
-    <mat-icon aria-hidden="true">add</mat-icon>
+    <app-ui-icon name="add" aria-hidden="true" />
     Nuevo producto
   </a>
 </app-page-header>
 
 @if (!hasStore()) {
   <app-empty-state
-    icon="storefront"
+    icon="store"
     title="Sin establecimiento asociado"
     message="La sesión actual no tiene una tienda asignada. Inicia sesión con una cuenta administradora de tienda para gestionar el catálogo."
   />
@@ -23,10 +19,10 @@
 } @else {
   @if (store.error()) {
     <div class="page-alert" role="alert">
-      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <app-ui-icon name="error" aria-hidden="true" />
       <span>{{ store.error() }}</span>
       <button mat-stroked-button type="button" (click)="loadProducts()">
-        Reintentar
+        <app-ui-icon name="arrow-right" [size]="16" aria-hidden="true" /> Reintentar
       </button>
     </div>
   }
@@ -36,7 +32,6 @@
       <div class="filters-grid">
         <mat-form-field appearance="outline" class="search-field">
           <mat-label>Buscar producto</mat-label>
-          <mat-icon matPrefix aria-hidden="true">search</mat-icon>
           <input
             matInput
             type="search"
@@ -61,8 +56,8 @@
           </mat-select>
         </mat-form-field>
 
-        <button mat-button type="button" (click)="clearFilters()">
-          Limpiar filtros
+        <button mat-flat-button color="primary" type="button" (click)="clearFilters()">
+          <app-ui-icon name="close" [size]="16" aria-hidden="true" /> Limpiar filtros
         </button>
       </div>
     </mat-card-content>
@@ -78,22 +73,22 @@
   @if (filteredProducts().length === 0) {
     @if (totalCount() === 0) {
       <app-empty-state
-        icon="category"
+        icon="tag"
         title="Catálogo vacío"
         message="Todavía no hay productos registrados. Crea el primero para comenzar a publicar tu oferta comercial."
       >
         <a mat-flat-button color="primary" routerLink="/catalog/products/new">
-          Crear primer producto
+          <app-ui-icon name="add" [size]="16" aria-hidden="true" /> Crear primer producto
         </a>
       </app-empty-state>
     } @else {
       <app-empty-state
-        icon="search_off"
+        icon="search-off"
         title="Sin resultados"
         message="Ningún producto coincide con los filtros seleccionados."
       >
-        <button mat-stroked-button type="button" (click)="clearFilters()">
-          Limpiar filtros
+        <button mat-flat-button color="primary" type="button" (click)="clearFilters()">
+          <app-ui-icon name="close" [size]="16" aria-hidden="true" /> Limpiar filtros
         </button>
       </app-empty-state>
     }

@@ -1,20 +1,20 @@
 <app-page-header [title]="pageTitle()" [subtitle]="pageSubtitle()">
   <a mat-stroked-button routerLink="/credit/customers">
-    <mat-icon aria-hidden="true">arrow_back</mat-icon>
+    <app-ui-icon name="arrow-left" aria-hidden="true" />
     Volver al listado
   </a>
 </app-page-header>
 
 @if (!hasStore()) {
   <app-empty-state
-    icon="storefront"
+    icon="store"
     title="Sin establecimiento asociado"
     message="La sesión actual no tiene una tienda asignada. No es posible administrar fichas crediticias sin un establecimiento."
   />
 } @else if (loadError()) {
   <mat-card class="state-card" appearance="outlined">
     <mat-card-content>
-      <mat-icon class="state-icon" aria-hidden="true">error_outline</mat-icon>
+      <app-ui-icon class="state-icon" name="error" aria-hidden="true" />
       <h2>No se pudo cargar la ficha crediticia</h2>
       <p>{{ loadError() }}</p>
       <a mat-flat-button color="primary" routerLink="/credit/customers">
@@ -40,25 +40,54 @@
           </div>
 
           <div class="field-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Usuario asociado (ID)</mat-label>
-              <input
-                matInput
-                formControlName="userId"
-                type="number"
-                min="1"
-                step="1"
-                inputmode="numeric"
-                aria-required="true"
-              />
-              @if (form.controls.userId.touched && form.controls.userId.hasError('required')) {
-                <mat-error>El usuario es obligatorio.</mat-error>
-              } @else if (form.controls.userId.touched && form.controls.userId.hasError('min')) {
-                <mat-error>El identificador debe ser mayor que cero.</mat-error>
-              } @else if (form.controls.userId.touched && form.controls.userId.hasError('integer')) {
-                <mat-error>El identificador debe ser un entero.</mat-error>
-              }
-            </mat-form-field>
+            @if (isEditMode() && loadedCustomer(); as customer) {
+              <p class="readonly-value field-span-2">Cliente: {{ customer.fullName }}</p>
+            } @else {
+              <div class="field-grid field-span-2" formGroupName="account">
+                <mat-form-field appearance="outline">
+                  <mat-label>Nombres</mat-label>
+                  <input matInput formControlName="firstName" autocomplete="given-name" />
+                  @if (form.controls.account.controls.firstName.touched && form.controls.account.controls.firstName.hasError('required')) {
+                    <mat-error>Los nombres son obligatorios.</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Apellidos</mat-label>
+                  <input matInput formControlName="lastName" autocomplete="family-name" />
+                  @if (form.controls.account.controls.lastName.touched && form.controls.account.controls.lastName.hasError('required')) {
+                    <mat-error>Los apellidos son obligatorios.</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Correo electrónico</mat-label>
+                  <input matInput formControlName="email" type="email" autocomplete="email" />
+                  @if (form.controls.account.controls.email.touched && form.controls.account.controls.email.hasError('email')) {
+                    <mat-error>Ingresa un correo electrónico válido.</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Nombre de usuario</mat-label>
+                  <input matInput formControlName="username" autocomplete="username" />
+                  @if (form.controls.account.controls.username.touched && form.controls.account.controls.username.hasError('usernameFormat')) {
+                    <mat-error>Usa de 3 a 50 letras, números, puntos, guiones o guiones bajos. No incluyas espacios ni @.</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Contraseña inicial</mat-label>
+                  <input matInput formControlName="password" type="password" autocomplete="new-password" />
+                  @if (form.controls.account.controls.password.touched && form.controls.account.controls.password.hasError('minlength')) {
+                    <mat-error>La contraseña debe tener al menos 6 caracteres.</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Confirmar contraseña</mat-label>
+                  <input matInput formControlName="confirmPassword" type="password" autocomplete="new-password" />
+                  @if (form.controls.account.controls.confirmPassword.touched && form.controls.account.hasError('passwordsMismatch')) {
+                    <mat-error>Las contraseñas no coinciden.</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            }
 
             <mat-form-field appearance="outline" class="field-span-2">
               <mat-label>Dirección domiciliaria</mat-label>
@@ -211,7 +240,7 @@
                 aria-required="true"
               >
                 @for (type of rateTypeOptions; track type) {
-                  <mat-option [value]="type">{{ type }}</mat-option>
+                  <mat-option [value]="type.value">{{ type.label }}</mat-option>
                 }
               </mat-select>
             </mat-form-field>
@@ -271,7 +300,7 @@
                 aria-required="true"
               >
                 @for (type of rateTypeOptions; track type) {
-                  <mat-option [value]="type">{{ type }}</mat-option>
+                  <mat-option [value]="type.value">{{ type.label }}</mat-option>
                 }
               </mat-select>
             </mat-form-field>
@@ -332,13 +361,13 @@
 
     @if (submitError()) {
       <div class="page-alert" role="alert">
-        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <app-ui-icon name="error" aria-hidden="true" />
         <span>{{ submitError() }}</span>
       </div>
     }
 
     <div class="form-actions">
-      <a mat-stroked-button routerLink="/credit/customers">Cancelar</a>
+      <a mat-stroked-button routerLink="/credit/customers"><app-ui-icon name="close" [size]="16" aria-hidden="true" /> Cancelar</a>
       <button
         mat-flat-button
         color="primary"
@@ -349,6 +378,7 @@
           <mat-spinner diameter="20" aria-label="Guardando ficha crediticia" />
           <span>Guardando...</span>
         } @else {
+          <app-ui-icon name="check" [size]="16" aria-hidden="true" />
           <span>{{ submitLabel() }}</span>
         }
       </button>

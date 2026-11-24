@@ -9,7 +9,7 @@
       />
     } @else {
       <div class="product-card__placeholder" aria-hidden="true">
-        <mat-icon>inventory_2</mat-icon>
+        <app-ui-icon name="package" [size]="40" aria-hidden="true" />
         <span>Sin imagen</span>
       </div>
     }
@@ -52,32 +52,33 @@
         {{ product().currentStock }} / mínimo {{ product().minStock }}
       </span>
       <span>
-        <strong>Pagos mensuales:</strong>
-        {{ product().allowsMonthlyPayments ? 'Sí' : 'No' }}
+        <strong>Venta en cuotas:</strong>
+        {{ product().allowsInstallments ? 'Sí' : 'No' }}
       </span>
     </div>
 
     @if (showAdminActions()) {
       <div class="product-card__actions">
         <button
-          mat-stroked-button
+          mat-flat-button
+          color="primary"
           type="button"
           (click)="onEdit()"
           [attr.aria-label]="'Editar ' + product().name"
         >
-          <mat-icon aria-hidden="true">edit</mat-icon>
+          <app-ui-icon name="edit" aria-hidden="true" />
           Editar
         </button>
 
         @if (isActive()) {
           <button
-            mat-button
+            mat-flat-button
             type="button"
             class="deactivate-button"
             (click)="onDeactivate()"
             [attr.aria-label]="'Desactivar ' + product().name"
           >
-            <mat-icon aria-hidden="true">block</mat-icon>
+            <app-ui-icon name="blocked" aria-hidden="true" />
             Desactivar
           </button>
         }

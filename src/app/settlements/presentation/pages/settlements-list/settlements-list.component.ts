@@ -1,7 +1,7 @@
-import { environment } from '../../../../../environments/environment';
+import { businessLabel } from '../../../../shared/presentation/business-labels';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
+import { UiIconComponent } from '../../../../shared/presentation/components/ui-icon/ui-icon.component';
 import { MatButtonModule } from '@angular/material/button';
 import {
   DataTableColumn,
@@ -18,7 +18,7 @@ import { RunCutoffUseCase } from '../../../application/use-cases/run-cutoff.use-
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
+    UiIconComponent,
     MatButtonModule,
     PageHeaderComponent,
     DataTableComponent,
@@ -29,7 +29,6 @@ import { RunCutoffUseCase } from '../../../application/use-cases/run-cutoff.use-
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettlementsListPageComponent implements OnInit {
-  readonly demo = environment.demo;
   readonly store = inject(CollectionStore);
   private readonly runCutoffUseCase = inject(RunCutoffUseCase);
   private readonly toast = inject(ToastService);
@@ -53,10 +52,16 @@ export class SettlementsListPageComponent implements OnInit {
   async onRunCutoff(): Promise<void> {
     const res = await this.runCutoffUseCase.execute();
     if (res.isOk()) {
-      this.toast.success(res.value.message);
+      const count = res.value.generatedCount;
+      const summary = count === 0
+        ? 'No se generaron liquidaciones.'
+        : count === 1
+          ? 'Se generó 1 liquidación.'
+          : `Se generaron ${count} liquidaciones.`;
+      this.toast.success(`Corte mensual completado. ${summary}`);
       await this.store.loadSettlements();
     } else {
-      this.toast.error(res.error.message);
+      this.toast.error('No se pudo ejecutar el corte mensual. Inténtalo de nuevo.');
     }
   }
 
@@ -71,7 +76,7 @@ export class SettlementsListPageComponent implements OnInit {
       interest: s.compensatoryInterest.toFormatted(),
       penalty: s.penaltyAmount.toFormatted(),
       total: s.totalDue.toFormatted(),
-      status: s.status,
+      status: businessLabel(s.status),
     }));
   }
 }

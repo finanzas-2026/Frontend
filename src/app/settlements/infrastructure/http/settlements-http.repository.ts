@@ -29,7 +29,6 @@ export class SettlementsHttpRepository
   implements SettlementsRepository
 {
   private readonly assembler = inject(SettlementAssembler);
-  private readonly rootApiUrl = inject(API_BASE_URL);
 
   constructor() {
     const http = inject(HttpClient);
@@ -38,9 +37,6 @@ export class SettlementsHttpRepository
   }
 
   listSettlements(): Observable<MonthlySettlement[]> {
-    // TODO(BACKEND-INTEGRATION): Implementar las operaciones de liquidación
-    // cuando existan los endpoints correspondientes en el backend real.
-    // JSON Server expone `monthly_settlements`, no `/settlements`.
     const listSchema = z.array(settlementResponseSchema);
     return this.http.get<SettlementResponseDto[]>(this.basePath).pipe(
       map((response) => {
@@ -119,7 +115,8 @@ export class SettlementsHttpRepository
     return this.http
       .post<PaymentResponseDto>(
         `${this.basePath}/${params.settlementId}/pay`,
-        payload
+        payload,
+        { headers: { 'Idempotency-Key': params.idempotencyKey } },
       )
       .pipe(
         map((response) => {
@@ -141,22 +138,10 @@ export class SettlementsHttpRepository
   }
 
   runCutoff(): Observable<{ message: string; generatedCount: number }> {
-    // TODO(BACKEND-INTEGRATION): Implementar las operaciones de avance de
-    // fecha y ejecución de corte cuando existan los endpoints
-    // correspondientes en el backend real. JSON Server no expone `__mock/*`.
     return this.http
       .post<{ message: string; generatedCount: number }>(
         `${this.basePath}/cutoff`,
         {}
-      )
-      .pipe(catchError((error) => this.handleError(error)));
-  }
-
-  advanceDate(days: number): Observable<{ newDate: string }> {
-    return this.http
-      .post<{ newDate: string }>(
-        `${this.rootApiUrl}/__mock/advance-date`,
-        { days }
       )
       .pipe(catchError((error) => this.handleError(error)));
   }

@@ -10,7 +10,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterLink } from '@angular/router';
@@ -21,6 +20,7 @@ import {
   LoadingStateComponent,
   PageHeaderComponent,
   ToastService,
+  UiIconComponent,
 } from '@shared/index';
 import { AuthStore } from '../../../../iam/application/stores/auth.store';
 import { ProductStore } from '../../../application/stores/product.store';
@@ -37,7 +37,6 @@ type ProductStatusFilter = ProductStatus | 'ALL';
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     MatSelectModule,
     RouterLink,
@@ -45,6 +44,7 @@ type ProductStatusFilter = ProductStatus | 'ALL';
     LoadingStateComponent,
     PageHeaderComponent,
     ProductCard,
+    UiIconComponent,
   ],
   templateUrl: './product-list.html',
   styleUrl: './product-list.css',
@@ -58,8 +58,9 @@ export class ProductList implements OnInit {
   private readonly toast = inject(ToastService);
 
   readonly statusOptions = [
-    { value: ProductStatuses.ACTIVE, label: 'Activos' },
-    { value: ProductStatuses.INACTIVE, label: 'Inactivos' },
+    { value: ProductStatuses.AVAILABLE, label: 'Disponibles' },
+    { value: ProductStatuses.OUT_OF_STOCK, label: 'Agotados' },
+    { value: ProductStatuses.DISCONTINUED, label: 'Descontinuados' },
   ] as const;
   readonly searchQuery = signal('');
   readonly statusFilter = signal<ProductStatusFilter>('ALL');
