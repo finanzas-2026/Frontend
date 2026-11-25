@@ -53,8 +53,9 @@ test('derives POS grace days and due dates from the selected customer contract',
     grace_days: number;
     installments: { due_date: string; is_grace_period: boolean }[];
   };
-  expect(schedule.grace_days).toBeGreaterThanOrEqual(0);
-  expect(schedule.installments.length).toBe(3);
-  expect(schedule.installments.some((item) => item.is_grace_period)).toBe(false);
-  expect(schedule.installments[0].due_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect(schedule.grace_days).toBe(10);
+  expect(schedule.installments.map((item) => item.due_date)).toEqual([
+    '2026-12-05', '2027-01-05', '2027-02-05', '2027-03-05',
+  ]);
+  expect(schedule.installments[0].is_grace_period).toBe(true);
 });

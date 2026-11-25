@@ -11,4 +11,12 @@ export interface SettlementResponseDto {
   total_due: string;
   status: 'PENDING' | 'OVERDUE' | 'PAID';
   paid_date?: string;
+  purchases?: {
+    sale_id: number;
+    sale_code: string;
+    purchase_date: string;
+    principal_amount: string;
+    compensatory_interest: string;
+    total_due: string;
+  }[];
 }

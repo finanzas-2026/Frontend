@@ -32,6 +32,8 @@ export const saleResponseSchema = z.object({
   store_id: z.number(),
   payment_mode: z.enum(['CASH', 'MONTH_END', 'INSTALLMENTS']),
   total_amount: z.string(),
+  month_end_interest: z.string().optional(),
+  first_due_date: z.string().optional(),
   status: z.string(),
   installments_count: z.number().optional(),
   grace_days: z.number().optional(),

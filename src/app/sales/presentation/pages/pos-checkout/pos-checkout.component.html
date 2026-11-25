@@ -190,6 +190,10 @@
               </mat-radio-group>
             </div>
 
+            @if (store.paymentMode() === modes.MONTH_END) {
+              <p class="prod-sku">La liquidación incluirá el precio a crédito más el interés desde la compra hasta la fecha pactada de pago.</p>
+            }
+
             <!-- Installment Parameters if FINANCIADO_CUOTAS -->
             @if (store.paymentMode() === modes.INSTALLMENTS) {
               <div class="cuotas-params-box">
@@ -219,7 +223,16 @@
                     <span class="preview-title">
                       Cuota Estimada: {{ sched.regularInstallment.toFormatted() }} / mes
                     </span>
-                    <p>Días de gracia calculados según el ciclo del cliente: {{ sched.graceDays }}.</p>
+                    @if (sched.installments[0]; as firstRow) {
+                      @if (firstRow.isGracePeriod) {
+                        <p>Fin de la gracia: {{ firstRow.dueDate }} ({{ sched.graceDays }} días).</p>
+                        @if (sched.installments[1]; as firstPayment) {
+                          <p>Primera cuota: {{ firstPayment.dueDate }}.</p>
+                        }
+                      } @else {
+                        <p>Primera cuota: {{ firstRow.dueDate }}.</p>
+                      }
+                    }
                     <div class="table-scroll-wrapper">
                       <app-schedule-table [installments]="sched.installments" />
                     </div>
@@ -250,7 +263,7 @@
                 <span>{{ store.totalAmount() | solCurrency }}</span>
               </div>
               <div class="total-line grand-total">
-                <span>Total a Pagar:</span>
+                <span>{{ store.paymentMode() === modes.MONTH_END ? 'Precio a crédito:' : 'Total a pagar:' }}</span>
                 <span class="total-val">{{ store.totalAmount() | solCurrency }}</span>
               </div>
             </div>

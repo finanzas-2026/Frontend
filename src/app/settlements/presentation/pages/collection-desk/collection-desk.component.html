@@ -59,6 +59,9 @@
           <div class="kpi-box">
             <span class="kpi-label">Interés Moratorio</span>
             <span class="kpi-value text-danger">{{ quote.moratoriumInterest.toFormatted() }}</span>
+            @if (quote.daysOverdue > 0) {
+              <span class="kpi-label">Base de mora: {{ quote.overduePrincipal.add(quote.compensatoryInterest).toFormatted() }}</span>
+            }
           </div>
           <div class="kpi-box kpi-highlight">
             <span class="kpi-label">Total a Liquidar</span>

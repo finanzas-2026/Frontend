@@ -2,6 +2,15 @@ import { BaseEntity, Money } from '@shared/domain';
 
 export type SettlementStatus = 'PENDING' | 'OVERDUE' | 'PAID';
 
+export interface StatementPurchase {
+  saleId: number;
+  saleCode: string;
+  purchaseDate: string;
+  principal: Money;
+  interest: Money;
+  total: Money;
+}
+
 export interface MonthlySettlementProps {
   id: number;
   code: string;
@@ -15,6 +24,7 @@ export interface MonthlySettlementProps {
   totalDue: Money;
   status: SettlementStatus;
   paidDate?: string;
+  purchases?: readonly StatementPurchase[];
 }
 
 export class MonthlySettlement implements BaseEntity {
@@ -30,6 +40,7 @@ export class MonthlySettlement implements BaseEntity {
   readonly totalDue: Money;
   readonly status: SettlementStatus;
   readonly paidDate?: string;
+  readonly purchases?: readonly StatementPurchase[];
 
   constructor(props: MonthlySettlementProps) {
     this.id = props.id;
@@ -44,6 +55,7 @@ export class MonthlySettlement implements BaseEntity {
     this.totalDue = props.totalDue;
     this.status = props.status;
     this.paidDate = props.paidDate;
+    this.purchases = props.purchases;
   }
 
   isPaid(): boolean {

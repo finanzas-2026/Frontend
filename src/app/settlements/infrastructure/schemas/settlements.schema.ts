@@ -13,6 +13,14 @@ export const settlementResponseSchema = z.object({
   total_due: z.string(),
   status: z.enum(['PENDING', 'OVERDUE', 'PAID']),
   paid_date: z.string().optional(),
+  purchases: z.array(z.object({
+    sale_id: z.number(),
+    sale_code: z.string(),
+    purchase_date: z.string(),
+    principal_amount: z.string(),
+    compensatory_interest: z.string(),
+    total_due: z.string(),
+  })).optional(),
 });
 
 export const payoffQuoteResponseSchema = z.object({

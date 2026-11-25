@@ -16,6 +16,8 @@ export interface SaleResponseDto {
   store_id: number;
   payment_mode: 'CASH' | 'MONTH_END' | 'INSTALLMENTS';
   total_amount: string;
+  month_end_interest?: string;
+  first_due_date?: string;
   status: string;
   installments_count?: number;
   grace_days?: number;

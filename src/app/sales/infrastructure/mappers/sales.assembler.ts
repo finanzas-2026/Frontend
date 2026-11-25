@@ -35,6 +35,8 @@ export class SalesAssembler
       store_id: entity.storeId,
       payment_mode: entity.paymentMode,
       total_amount: entity.totalAmount.toString(),
+      month_end_interest: entity.monthEndInterest?.toString(),
+      first_due_date: entity.firstDueDate,
       status: entity.status,
       installments_count: entity.installmentsCount,
       grace_days: entity.graceDays,
@@ -70,6 +72,9 @@ export class SalesAssembler
       storeId: dto.store_id,
       paymentMode: dto.payment_mode as PaymentMode,
       totalAmount,
+      monthEndInterest: dto.month_end_interest === undefined
+        ? undefined : Money.fromString(dto.month_end_interest).unwrapOr(Money.zero()),
+      firstDueDate: dto.first_due_date,
       status: dto.status,
       installmentsCount: dto.installments_count,
       graceDays: dto.grace_days,

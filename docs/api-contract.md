@@ -24,9 +24,12 @@ Business JSON uses snake_case. Profile CRUD values such as amounts and rates are
 
 ## Settlements and analytics
 
+For POS installment sales, grace ends on the purchase cycle's agreed payment date. The first installment is billed at the next cutoff and is due on that cycle's payment date. For month-end sales, `total_amount` contains the catalog credit price and `month_end_interest` is the compensatory interest from purchase to `first_due_date` under 30E/360. The settlement reports the two amounts separately. Late interest is calculated on the unpaid amount that fell due, including compensatory interest and excluding late interest itself.
+
 | Endpoint | Contract |
 | --- | --- |
-| `GET /settlements`, `GET /settlements/{id}` | Lists or retrieves settlements visible to the current role. |
+| `GET /settlements` | Lists statement summaries visible to the current role. |
+| `GET /settlements/{id}` | Retrieves an authorized statement with its `purchases` in chronological order. Each entry has `sale_id`, `sale_code`, `purchase_date` (Lima), `principal_amount`, `compensatory_interest`, and `total_due` (principal plus purchase interest). Installments and late interest are reflected in the statement totals. |
 | `POST /settlements/cutoff` | Store admin only. Has no business-date body; backend clock and billing calendar select eligible sales. Repeating a cutoff must not duplicate settlements. |
 | `GET /settlements/{id}/payoff-quote` | Returns the current calculation date, overdue days, overdue principal, compensatory interest, moratorium interest, and total payoff amount. |
 | `POST /settlements/{id}/pay` | Requires `Idempotency-Key` (UUID) and accepts the received `amount`, `payment_method`, and optional `reference_number`. The received amount must cover the current quote. The backend applies only the debt amount and records any overpayment as customer favour. The receipt includes the recorded allocation to late interest, compensatory interest and principal. A retry with the same key and payload returns the same receipt. |

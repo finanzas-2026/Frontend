@@ -18,8 +18,42 @@
         [items]="tableItems()"
         [columns]="columns"
         emptyTitle="Sin movimientos"
-        emptyMessage="No se registran liquidaciones pendientes para su cuenta."
+        emptyMessage="No se registran liquidaciones para su cuenta."
       />
     </mat-card-content>
   </mat-card>
+
+  @if (store.settlements().length) {
+    <section class="purchase-detail" aria-label="Compras de la liquidación">
+      <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic">
+        <mat-label>Consultar compras por liquidación</mat-label>
+        <mat-select placeholder="Seleccionar liquidación" (selectionChange)="openStatement($event.value)">
+          @for (row of store.settlements(); track row.id) {
+            <mat-option [value]="row.id">{{ row.code }} · {{ row.cutoffDate | date:'dd/MM/yyyy' }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (detailStatus() === 'loading') {
+        <p role="status">Cargando compras…</p>
+      } @else if (detailStatus() === 'error') {
+        <p role="alert">No se pudo consultar la liquidación. Vuelva a seleccionarla.</p>
+      } @else if (statement(); as detail) {
+        <h2>Liquidación {{ detail.code }}</h2>
+        <dl class="statement-amounts">
+          <div><dt>Capital</dt><dd>{{ detail.principalAmount.toFormatted() }}</dd></div>
+          <div><dt>Interés compensatorio</dt><dd>{{ detail.compensatoryInterest.toFormatted() }}</dd></div>
+          <div><dt>Interés por mora</dt><dd>{{ detail.penaltyAmount.toFormatted() }}</dd></div>
+          <div><dt>Total de la liquidación</dt><dd>{{ detail.totalDue.toFormatted() }}</dd></div>
+        </dl>
+        <h3>Compras a cierre mensual</h3>
+        <app-data-table
+          [items]="purchaseItems()"
+          [columns]="purchaseColumns"
+          emptyTitle="Sin compras vinculadas"
+          emptyMessage="Esta liquidación no tiene compras a cierre mensual vinculadas."
+        />
+      }
+    </section>
+  }
 </div>

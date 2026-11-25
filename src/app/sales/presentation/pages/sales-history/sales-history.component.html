@@ -68,10 +68,22 @@
             </tbody>
           </table>
 
-          <div class="modal-total">
-            <span>Total Operación:</span>
-            <span class="total-highlight">{{ sale.totalAmount.toFormatted() }}</span>
-          </div>
+          @if (sale.monthEndInterest; as interest) {
+            <p>Precio a crédito: {{ sale.totalAmount.toFormatted() }}</p>
+            <p>Interés compensatorio: {{ interest.toFormatted() }}</p>
+            @if (sale.firstDueDate) {
+              <p>Fecha pactada de pago: {{ sale.firstDueDate }}</p>
+            }
+            <div class="modal-total">
+              <span>Total al vencimiento:</span>
+              <span class="total-highlight">{{ sale.totalAmount.add(interest).toFormatted() }}</span>
+            </div>
+          } @else {
+            <div class="modal-total">
+              <span>Total Operación:</span>
+              <span class="total-highlight">{{ sale.totalAmount.toFormatted() }}</span>
+            </div>
+          }
         </div>
       </div>
     </div>

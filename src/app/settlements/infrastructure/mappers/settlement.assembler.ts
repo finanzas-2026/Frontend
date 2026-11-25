@@ -35,6 +35,14 @@ export class SettlementAssembler
       total_due: entity.totalDue.toString(),
       status: entity.status,
       paid_date: entity.paidDate,
+      purchases: entity.purchases?.map((purchase) => ({
+        sale_id: purchase.saleId,
+        sale_code: purchase.saleCode,
+        purchase_date: purchase.purchaseDate,
+        principal_amount: purchase.principal.toString(),
+        compensatory_interest: purchase.interest.toString(),
+        total_due: purchase.total.toString(),
+      })),
     };
   }
 
@@ -61,6 +69,14 @@ export class SettlementAssembler
       totalDue,
       status: dto.status as SettlementStatus,
       paidDate: dto.paid_date,
+      purchases: dto.purchases?.map((purchase) => ({
+        saleId: purchase.sale_id,
+        saleCode: purchase.sale_code,
+        purchaseDate: purchase.purchase_date,
+        principal: Money.fromString(purchase.principal_amount).unwrapOr(Money.zero()),
+        interest: Money.fromString(purchase.compensatory_interest).unwrapOr(Money.zero()),
+        total: Money.fromString(purchase.total_due).unwrapOr(Money.zero()),
+      })),
     });
   }
 

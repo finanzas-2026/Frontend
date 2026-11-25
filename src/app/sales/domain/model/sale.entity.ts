@@ -9,6 +9,8 @@ export interface SaleProps {
   storeId: number;
   paymentMode: PaymentMode;
   totalAmount: Money;
+  monthEndInterest?: Money;
+  firstDueDate?: string;
   status: string;
   installmentsCount?: number;
   graceDays?: number;
@@ -25,6 +27,8 @@ export class Sale implements BaseEntity {
   readonly storeId: number;
   readonly paymentMode: PaymentMode;
   readonly totalAmount: Money;
+  readonly monthEndInterest?: Money;
+  readonly firstDueDate?: string;
   readonly status: string;
   readonly installmentsCount?: number;
   readonly graceDays?: number;
@@ -40,6 +44,8 @@ export class Sale implements BaseEntity {
     this.storeId = props.storeId;
     this.paymentMode = props.paymentMode;
     this.totalAmount = props.totalAmount;
+    this.monthEndInterest = props.monthEndInterest;
+    this.firstDueDate = props.firstDueDate;
     this.status = props.status;
     this.installmentsCount = props.installmentsCount;
     this.graceDays = props.graceDays;
